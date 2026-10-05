@@ -194,6 +194,16 @@
   .kachel .bild img { width: 76px; height: 76px; object-fit: contain; display: block; }
   .kachel h3 { margin: 0; font-size: 1.05rem; line-height: 1.25; }
   .kachel .sub { font-size: .88rem; color: var(--ink-soft); }
+  .nc-liste { list-style: none; margin: 0 0 16px; padding: 0; display: grid; gap: 12px; }
+  .nc-liste li { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 16px; }
+  .nc-kopf { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px; margin-bottom: 10px; }
+  .nc-kopf .code { font-size: 1.3rem; }
+  .nc-status { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 99px; font-weight: 600; background: var(--surface-2); }
+  .nc-status.offen { background: var(--amber-soft); border: 1px solid var(--amber); }
+  .nc-werte { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px 16px; margin: 0; }
+  .nc-werte div { min-width: 0; }
+  .nc-werte dt { color: var(--ink-soft); font-size: .9rem; }
+  .nc-werte dd { margin: 0; font-weight: 700; font-size: 1.1rem; }
   .fs-karte h3 { margin: 0 0 10px; }
   .fs-zeile { display: grid; grid-template-columns: 4.5rem 1fr auto; align-items: center; gap: 10px; margin: 6px 0; }
   .fs-zeile .name { color: var(--ink-soft); }
@@ -391,14 +401,30 @@
       <p class="lead">Für Kinder, deren Fortschritt gespeichert wird. Jedes Kind bekommt genau einen Code. Wer welchen Code hat, schreibst du außerhalb der App auf.</p>
       <ol class="codeliste" id="code-einzel"></ol>
     </div>
+    <div class="karte">
+      <h3>Auswertung</h3>
+      <p class="lead">Sieh nach, welche Codes geübt haben und wie.</p>
+      <button class="btn" id="zu-nach-code" type="button">Nach Code</button>
+    </div>
     <div class="zeile"><button class="btn ghost" id="lehrkraft-verlassen" type="button">Bereich verlassen</button></div>
+  </section>
+
+  <!-- Lehrkraft: Übersicht nach Code -->
+  <section id="ansicht-nach-code" hidden>
+    <div class="uebung-kopf">
+      <button class="btn ghost small" id="nach-code-zurueck" type="button">Zurück</button>
+      <h2 tabindex="-1">Nach Code</h2>
+    </div>
+    <p class="lead" style="color:var(--ink-soft)">Stand auf diesem Gerät. Der Durchschnitt zählt das beste Ergebnis jeder geübten Aufgabe.</p>
+    <ul class="nc-liste" id="nach-code-liste"></ul>
+    <div class="zeile"><button class="btn ghost" id="nach-code-zurueck-unten" type="button">Zurück</button></div>
   </section>
 </main>
 
 <footer>Evangelisches Schulzentrum Bad Düben &middot; <span style="white-space:nowrap">Version <span id="version"></span></span></footer>
 
 <script>
-const APP_VERSION = "1.11.0";
+const APP_VERSION = "1.12.0";
 document.getElementById("version").textContent = APP_VERSION;
 
 (function () {
@@ -1341,7 +1367,7 @@ const EINZELCODES = [
   });
 
   /* Ansichten */
-  const ANSICHTEN = ["ansicht-zugang", "ansicht-wer", "ansicht-start", "ansicht-fortschritt", "ansicht-unterthemen", "ansicht-uebung", "ansicht-einstellungen", "ansicht-kennwort", "ansicht-lehrkraft"];
+  const ANSICHTEN = ["ansicht-zugang", "ansicht-wer", "ansicht-start", "ansicht-fortschritt", "ansicht-unterthemen", "ansicht-uebung", "ansicht-einstellungen", "ansicht-kennwort", "ansicht-lehrkraft", "ansicht-nach-code"];
   function zeige(id) {
     ANSICHTEN.forEach(function (a) { document.getElementById(a).hidden = (a !== id); });
     window.scrollTo(0, 0);
@@ -1544,6 +1570,55 @@ const EINZELCODES = [
       document.getElementById("kennwort").select();
     }
   });
+
+  /* Lehrkraft: Übersicht nach Code */
+  function datumSchoen(iso) {
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || "");
+    return m ? m[3] + "." + m[2] + "." + m[1] : "–";
+  }
+  function auswertungProfil(p) {
+    const e = p.ergebnisse || {};
+    let n = 0, summe = 0;
+    Object.keys(e).forEach(function (k) {
+      if (e[k] && e[k].versuche > 0) { n++; summe += Number(e[k].bestes) || 0; }
+    });
+    const tage = Array.isArray(p.tage) ? p.tage.slice().sort() : [];
+    return { aufgaben: n, schnitt: n > 0 ? Math.round(summe / n) : null, tage: tage.length, zuletzt: tage.length ? tage[tage.length - 1] : "" };
+  }
+  function zeigeNachCode() {
+    const liste = document.getElementById("nach-code-liste");
+    liste.innerHTML = "";
+    function zeile(titel, code, p, unbekannt) {
+      const a = p ? auswertungProfil(p) : { aufgaben: 0, schnitt: null, tage: 0, zuletzt: "" };
+      const li = document.createElement("li");
+      const kopf = document.createElement("div"); kopf.className = "nc-kopf";
+      const c = document.createElement("span"); c.className = "code"; c.textContent = titel + schoen(code);
+      const st = document.createElement("span");
+      const geuebtJa = a.aufgaben > 0;
+      st.className = "nc-status" + (geuebtJa ? "" : " offen");
+      st.textContent = (geuebtJa ? "✓ geübt" : "○ noch nicht geübt") + (unbekannt ? " · unbekannt" : "");
+      kopf.appendChild(c); kopf.appendChild(st);
+      const dl = document.createElement("dl"); dl.className = "nc-werte";
+      [["Zuletzt aktiv", geuebtJa || a.tage ? datumSchoen(a.zuletzt) : "–"],
+       ["Übungstage", String(a.tage)],
+       ["Geübte Aufgaben", String(a.aufgaben)],
+       ["Durchschnitt", a.schnitt === null ? "–" : a.schnitt + " %"]].forEach(function (x) {
+        const d = document.createElement("div");
+        const dt = document.createElement("dt"); dt.textContent = x[0];
+        const dd = document.createElement("dd"); dd.textContent = x[1];
+        d.appendChild(dt); d.appendChild(dd); dl.appendChild(d);
+      });
+      li.appendChild(kopf); li.appendChild(dl); liste.appendChild(li);
+    }
+    EINZELCODES.forEach(function (code, i) { zeile((i + 1) + ". ", code, profilVon(code), false); });
+    daten.profile.forEach(function (p) {
+      if (!findeEinzel(p.code)) zeile("", p.code, p, true);
+    });
+  }
+  auf("zu-nach-code", function () { zeigeNachCode(); zeige("ansicht-nach-code"); });
+  function zurueckZurLehrkraft() { zeigeCodes(); zeige("ansicht-lehrkraft"); }
+  auf("nach-code-zurueck", zurueckZurLehrkraft);
+  auf("nach-code-zurueck-unten", zurueckZurLehrkraft);
 
   function zeigeCodes() {
     document.getElementById("code-gemeinsam").textContent = GEMEINSAMER_CODE;
