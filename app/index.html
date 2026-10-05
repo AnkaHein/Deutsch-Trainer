@@ -129,6 +129,7 @@
   .wort.fehlt { background: var(--amber-soft); border-bottom-color: var(--amber); }
   .wort.bleibt { background: transparent; color: var(--ink-soft); border-bottom: 3px dashed var(--ink-soft); }
   .wort:disabled { cursor: default; }
+  .einheit { white-space: nowrap; }
   .zeichen { display: inline-block; vertical-align: baseline; line-height: 44px; margin-right: 6px; }
   .ergebnis { margin-top: 16px; }
   .ergebnis strong { font-size: 1.15rem; display: block; margin-bottom: 8px; }
@@ -247,13 +248,14 @@
     <div class="zeile">
       <button class="btn" id="uebung-pruefen" type="button">Prüfen</button>
       <button class="btn ghost" id="uebung-nochmal" type="button" hidden>Nochmal versuchen</button>
+      <button class="btn" id="uebung-weiter" type="button" hidden>Nächster Text</button>
     </div>
     <div class="karte ergebnis" id="uebung-ergebnis" role="status" hidden>
       <strong id="uebung-meldung"></strong>
       <ul class="legende">
         <li><span style="background:var(--accent)"></span>richtig großgeschrieben</li>
         <li><span style="background:var(--amber-soft);border-bottom:3px solid var(--amber)"></span>hier fehlte noch ein Großbuchstabe</li>
-        <li><span style="border-bottom:3px dashed var(--ink-soft)"></span>bleibt klein</li>
+        <li><span style="border-radius:0;height:14px;border-bottom:3px dashed var(--ink-soft)"></span>bleibt klein</li>
       </ul>
     </div>
   </section>
@@ -314,7 +316,7 @@
 <footer>Evangelisches Schulzentrum Bad Düben &middot; <span style="white-space:nowrap">Version <span id="version"></span></span></footer>
 
 <script>
-const APP_VERSION = "1.5.0";
+const APP_VERSION = "1.6.0";
 document.getElementById("version").textContent = APP_VERSION;
 
 (function () {
@@ -452,7 +454,11 @@ const EINZELCODES = [
       const h = document.createElement("h3"); h.textContent = b.titel;
       const sub = document.createElement("span"); sub.className = "sub"; sub.textContent = b.sub;
       const balken = document.createElement("span"); balken.className = "balken"; balken.setAttribute("aria-hidden", "true");
-      balken.appendChild(document.createElement("i"));
+      const fuellung = document.createElement("i");
+      const stand = geuebt(b.id);
+      fuellung.style.width = (stand.gesamt > 0 ? Math.round(stand.geuebt / stand.gesamt * 100) : 0) + "%";
+      balken.appendChild(fuellung);
+      if (b.aktiv) karte.setAttribute("aria-label", b.titel + ", " + stand.geuebt + " von " + stand.gesamt + " Texten geübt");
       karte.appendChild(bild); karte.appendChild(h); karte.appendChild(sub); karte.appendChild(balken);
       if (b.aktiv) {
         karte.addEventListener("click", function () { oeffneBereich(b); });
@@ -470,13 +476,56 @@ const EINZELCODES = [
   const AUFGABEN = {
     "gross-klein": {
       leicht: [
-        { id: "gk-l-01", text: "^am ^samstag besuchen ^lena und ihr ^bruder den ^zoo. ^sie sehen ^elefanten, ^affen und einen großen ^tiger. ^danach kaufen sie ein ^eis." }
+        { id: "gk-l-01", text: "^am ^samstag besuchen ^lena und ihr ^bruder den ^zoo. ^sie sehen ^elefanten, ^affen und einen großen ^tiger. ^danach kaufen sie ein ^eis." },
+        { id: "gk-l-02", text: "^die ^katze schläft auf dem ^sofa. ^mia holt ihr ^wasser und etwas ^futter. ^dann spielt sie mit dem kleinen ^ball." },
+        { id: "gk-l-03", text: "^in der ^pause spielen ^ben und ^finn ^fußball auf dem ^hof. ^die ^kinder rufen laut. ^danach trinken alle ^wasser aus der ^flasche." },
+        { id: "gk-l-04", text: "^im ^herbst fallen die ^blätter von den ^bäumen. ^lena und ^tom sammeln bunte ^blätter im ^garten. ^danach basteln sie ein ^bild für die ^mutter." }
       ],
       mittel: [],
       schwer: []
     }
   };
   const uebung = { bereich: null, aufgabe: null, woerter: [], geprueft: false };
+
+  /* Ergebnisse: Mit Einzelcode im Profil (bleibt gespeichert), mit dem gemeinsamen Code nur im Arbeitsspeicher. */
+  let sitzungsErgebnisse = {};
+  function ergebnisse() {
+    if (sitzung.art === "einzel") {
+      const p = profilVon(sitzung.code);
+      if (p) { if (!p.ergebnisse) p.ergebnisse = {}; return p.ergebnisse; }
+    }
+    return sitzungsErgebnisse;
+  }
+  function heute() {
+    const d = new Date();
+    const z = function (n) { return (n < 10 ? "0" : "") + n; };
+    return d.getFullYear() + "-" + z(d.getMonth() + 1) + "-" + z(d.getDate());
+  }
+  function schluessel(bereichId, aufgabe) { return bereichId + "|" + stufe + "|" + aufgabe.id; }
+  function geuebt(bereichId) {
+    const liste = (AUFGABEN[bereichId] && AUFGABEN[bereichId][stufe]) || [];
+    const e = ergebnisse();
+    const n = liste.filter(function (a) { return e[schluessel(bereichId, a)] && e[schluessel(bereichId, a)].versuche > 0; }).length;
+    return { geuebt: n, gesamt: liste.length };
+  }
+  function merkeErgebnis(prozent) {
+    const e = ergebnisse();
+    const k = schluessel(uebung.bereich.id, uebung.aufgabe);
+    const alt = e[k];
+    e[k] = {
+      bestes: alt ? Math.max(alt.bestes, prozent) : prozent,
+      versuche: (alt ? alt.versuche : 0) + 1,
+      zuletzt: heute()
+    };
+    if (sitzung.art === "einzel") {
+      const p = profilVon(sitzung.code);
+      if (p) {
+        if (!Array.isArray(p.tage)) p.tage = [];
+        if (p.tage.indexOf(heute()) < 0) p.tage.push(heute());
+      }
+      speichere();
+    }
+  }
 
   function zerlege(text) {
     return text.split(" ").filter(Boolean).map(function (roh) {
@@ -509,6 +558,7 @@ const EINZELCODES = [
     document.getElementById("uebung-nummer").textContent = "Text " + (index + 1) + " von " + anzahl;
     document.getElementById("uebung-ergebnis").hidden = true;
     document.getElementById("uebung-nochmal").hidden = true;
+    document.getElementById("uebung-weiter").hidden = true;
     document.getElementById("uebung-pruefen").hidden = false;
     zeichneText(-1);
   }
@@ -528,8 +578,10 @@ const EINZELCODES = [
       b.setAttribute("aria-pressed", w.gewaehlt ? "true" : "false");
       if (zustand) b.setAttribute("aria-label", angezeigt + ", " + zustand);
       b.addEventListener("click", function () { w.gewaehlt = !w.gewaehlt; zeichneText(n); });
-      box.appendChild(b);
-      if (w.zeichen) { const z = document.createElement("span"); z.className = "zeichen"; z.textContent = w.zeichen; box.appendChild(z); }
+      const einheit = document.createElement("span"); einheit.className = "einheit";
+      einheit.appendChild(b);
+      if (w.zeichen) { const z = document.createElement("span"); z.className = "zeichen"; z.textContent = w.zeichen; einheit.appendChild(z); }
+      box.appendChild(einheit);
       box.appendChild(document.createTextNode(" "));
     });
     if (fokus >= 0) { const nb = box.querySelectorAll(".wort")[fokus]; if (nb) nb.focus({ preventScroll: true }); }
@@ -548,6 +600,9 @@ const EINZELCODES = [
       if (zuviel > 0) meldung += " " + (zuviel === 1 ? "Ein Wort, das du angetippt hast, bleibt" : zuviel + " Wörter, die du angetippt hast, bleiben") + " klein.";
       if (gefunden < noetig) meldung += " Die orangen Wörter fehlten noch.";
     }
+    merkeErgebnis(Math.round(Math.max(0, gefunden - zuviel) / noetig * 100));
+    const liste = AUFGABEN[uebung.bereich.id][stufe];
+    document.getElementById("uebung-weiter").hidden = (liste.indexOf(uebung.aufgabe) >= liste.length - 1);
     document.getElementById("uebung-meldung").textContent = meldung;
     document.getElementById("uebung-ergebnis").hidden = false;
     document.getElementById("uebung-pruefen").hidden = true;
@@ -558,6 +613,11 @@ const EINZELCODES = [
     const liste = AUFGABEN[uebung.bereich.id][stufe];
     startAufgabe(uebung.aufgabe, liste.indexOf(uebung.aufgabe), liste.length);
     window.scrollTo(0, 0);
+  });
+  document.getElementById("uebung-weiter").addEventListener("click", function () {
+    const liste = AUFGABEN[uebung.bereich.id][stufe];
+    const i = liste.indexOf(uebung.aufgabe) + 1;
+    if (i < liste.length) { startAufgabe(liste[i], i, liste.length); window.scrollTo(0, 0); }
   });
   document.getElementById("uebung-zurueck").addEventListener("click", function () { zeigeStart(); });
 
@@ -623,6 +683,7 @@ const EINZELCODES = [
     zeige("ansicht-start");
   }
   function meldeAn(code) {
+    sitzungsErgebnisse = {};
     sitzung.art = "einzel"; sitzung.code = code;
     legeProfilAn(code);
     daten.aktuellerCode = code;
@@ -630,6 +691,7 @@ const EINZELCODES = [
     zeigeStart();
   }
   function meldeAb() {
+    sitzungsErgebnisse = {};
     sitzung.art = null; sitzung.code = null;
     if (daten.aktuellerCode) { daten.aktuellerCode = ""; speichere(); }
     if (daten.profile.length > 0) { zeigeWer(); } else { zeigeZugang(); }
@@ -648,6 +710,7 @@ const EINZELCODES = [
     const einzel = findeEinzel(eingabe);
     if (einzel) { meldeAn(einzel); return; }
     if (istGemeinsam(eingabe)) {
+      sitzungsErgebnisse = {};
       sitzung.art = "gemeinsam"; sitzung.code = null;
       zeigeStart(); return;
     }
