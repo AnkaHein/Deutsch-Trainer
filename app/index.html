@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#00967C">
+<title>Rechtschreib-Training</title>
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="icon" href="./icon-192.png">
+<link rel="apple-touch-icon" href="./icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Rechtschreib-Training">
+<style>
+  :root { --gruen:#00967C; --hell:#f2faf8; --text:#1d2b28; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    display: flex; flex-direction: column; min-height: 100vh;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    background: var(--hell); color: var(--text);
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  }
+  header { background: var(--gruen); color: #fff; padding: 16px 20px; }
+  header h1 { margin: 0; font-size: 1.4rem; }
+  main { flex: 1; padding: 20px; }
+  footer { padding: 12px 20px; font-size: .85rem; text-align: center; color: #4a5a56; }
+  #update-leiste {
+    display: none; align-items: center; justify-content: space-between; gap: 12px;
+    background: #fff3c4; padding: 12px 20px; font-size: 1rem;
+  }
+  #update-leiste button {
+    min-height: 44px; padding: 0 16px; font-size: 1rem; border: 0; border-radius: 8px;
+    background: var(--gruen); color: #fff;
+  }
+</style>
+</head>
+<body>
+<div id="update-leiste" role="status">
+  <span>Neue Version verfügbar</span>
+  <button id="update-knopf" type="button">Jetzt aktualisieren</button>
+</div>
+<header><h1>Rechtschreib-Training</h1></header>
+<main id="start"></main>
+<footer>Version <span id="version"></span></footer>
+<script>
+const APP_VERSION = "1.0.0";
+document.getElementById("version").textContent = APP_VERSION;
+
+(function () {
+  if (!("serviceWorker" in navigator)) return;
+  const leiste = document.getElementById("update-leiste");
+  let neuLaden = false;
+
+  function zeigeUpdate(worker) {
+    leiste.style.display = "flex";
+    document.getElementById("update-knopf").onclick = function () {
+      worker.postMessage({ type: "SKIP_WAITING" });
+    };
+  }
+
+  navigator.serviceWorker.addEventListener("controllerchange", function () {
+    if (neuLaden) return;
+    neuLaden = true;
+    location.reload();
+  });
+
+  navigator.serviceWorker.register("./sw.js", { scope: "./" }).then(function (reg) {
+    if (reg.waiting && navigator.serviceWorker.controller) zeigeUpdate(reg.waiting);
+    reg.addEventListener("updatefound", function () {
+      const neu = reg.installing;
+      if (!neu) return;
+      neu.addEventListener("statechange", function () {
+        if (neu.state === "installed" && navigator.serviceWorker.controller) zeigeUpdate(neu);
+      });
+    });
+    reg.update();
+    document.addEventListener("visibilitychange", function () {
+      if (document.visibilityState === "visible") reg.update();
+    });
+  }).catch(function () {});
+})();
+</script>
+</body>
+</html>
