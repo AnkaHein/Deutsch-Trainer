@@ -82,6 +82,29 @@
 
   main { flex: 1; padding-block: 24px; }
 
+  /* Ansichten, Karten, Knöpfe */
+  .bar-oben { display: flex; justify-content: flex-end; }
+  h2 { margin: 0 0 12px; font-size: clamp(1.3rem, 4vw, 1.7rem); line-height: 1.2; color: var(--accent-deep); }
+  h2[tabindex="-1"]:focus, h2[tabindex="-1"]:focus-visible { outline: none; }
+  h3 { margin: 0 0 4px; font-size: 1.1rem; color: var(--accent-deep); }
+  .karte { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 20px; margin-bottom: 16px; }
+  .karte .lead { margin: 0 0 14px; color: var(--ink-soft); }
+  .btn { background: var(--accent); color: var(--accent-ink); border: 0; border-radius: 12px; padding: 12px 22px; font: inherit; font-weight: 600; cursor: pointer; min-height: 48px; }
+  .btn:hover { background: var(--accent-strong); }
+  .btn.ghost { background: transparent; color: var(--accent-strong); border: 2px solid var(--accent); }
+  .btn.ghost:hover { background: var(--surface-2); }
+  .zeile { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 8px; }
+  .feld { display: grid; gap: 6px; margin-bottom: 14px; max-width: 360px; }
+  .feld label { font-weight: 600; }
+  .feld input { font: inherit; font-size: 1.2rem; min-height: 52px; padding: 10px 14px; background: var(--bg); border: 2px solid var(--line); border-radius: 12px; width: 100%; color: var(--ink); }
+  .feld input:focus { border-color: var(--accent); outline: none; }
+  .hinweis { margin: 10px 0 0; padding: 10px 14px; border-radius: 12px; background: var(--amber-soft); border-left: 5px solid var(--amber); }
+  .code { font-family: ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace; font-size: clamp(1.5rem, 6vw, 2rem); font-weight: 700; letter-spacing: .12em; color: var(--accent-deep); }
+  .codeliste { list-style: none; margin: 8px 0 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr)); gap: 10px; }
+  .codeliste li { display: flex; align-items: center; gap: 12px; background: var(--bg); border: 1px solid var(--line); border-radius: 14px; padding: 8px 14px; }
+  .codeliste .nr { min-width: 2.2ch; text-align: right; color: var(--ink-soft); font-weight: 600; }
+  .gemeinsam { display: inline-block; background: var(--bg); border: 2px solid var(--accent); border-radius: 14px; padding: 8px 18px; }
+
   footer { padding: 14px 16px 18px; font-size: .9rem; text-align: center; color: var(--ink-soft); }
 
   @media (max-width: 420px) {
@@ -107,12 +130,64 @@
   </div>
 </header>
 
-<main id="start" class="wrap"></main>
+<main class="wrap">
+  <!-- Start (Inhalt folgt ab Schritt 5) -->
+  <section id="ansicht-start">
+    <div class="bar-oben"><button class="btn ghost" id="zu-einstellungen" type="button">Einstellungen</button></div>
+  </section>
+
+  <!-- Einstellungen -->
+  <section id="ansicht-einstellungen" hidden>
+    <h2 tabindex="-1">Einstellungen</h2>
+    <div class="karte">
+      <h3>Version der App</h3>
+      <p class="lead" style="margin:0">Version <span id="einstellungen-version"></span></p>
+    </div>
+    <div class="karte">
+      <h3>Für die Lehrkraft</h3>
+      <p class="lead">Dieser Bereich ist durch ein Kennwort geschützt.</p>
+      <button class="btn" id="zu-lehrkraft" type="button">Lehrkraft-Bereich</button>
+    </div>
+    <div class="zeile"><button class="btn ghost" id="einstellungen-zurueck" type="button">Zurück</button></div>
+  </section>
+
+  <!-- Lehrkraft: Kennwort -->
+  <section id="ansicht-kennwort" hidden>
+    <h2 tabindex="-1">Lehrkraft-Bereich</h2>
+    <form class="karte" id="kennwort-formular" autocomplete="off">
+      <div class="feld">
+        <label for="kennwort">Kennwort</label>
+        <input id="kennwort" name="kennwort" type="password" autocomplete="off" autocapitalize="off" spellcheck="false">
+      </div>
+      <p class="hinweis" id="kennwort-hinweis" role="alert" hidden>Das Kennwort stimmt nicht. Versuch es bitte noch einmal.</p>
+      <div class="zeile">
+        <button class="btn" type="submit">Öffnen</button>
+        <button class="btn ghost" id="kennwort-zurueck" type="button">Zurück</button>
+      </div>
+    </form>
+  </section>
+
+  <!-- Lehrkraft: Codes -->
+  <section id="ansicht-lehrkraft" hidden>
+    <h2 tabindex="-1">Lehrkraft-Bereich</h2>
+    <div class="karte">
+      <h3>Gemeinsamer Code</h3>
+      <p class="lead">Für alle Kinder, bei denen nichts gespeichert werden soll.</p>
+      <span class="gemeinsam code" id="code-gemeinsam"></span>
+    </div>
+    <div class="karte">
+      <h3>Einzelcodes</h3>
+      <p class="lead">Für Kinder, deren Fortschritt gespeichert wird. Jedes Kind bekommt genau einen Code. Wer welchen Code hat, schreibst du außerhalb der App auf.</p>
+      <ol class="codeliste" id="code-einzel"></ol>
+    </div>
+    <div class="zeile"><button class="btn ghost" id="lehrkraft-verlassen" type="button">Bereich verlassen</button></div>
+  </section>
+</main>
 
 <footer>Evangelisches Schulzentrum Bad Düben &middot; <span style="white-space:nowrap">Version <span id="version"></span></span></footer>
 
 <script>
-const APP_VERSION = "1.1.1";
+const APP_VERSION = "1.2.0";
 document.getElementById("version").textContent = APP_VERSION;
 
 (function () {
@@ -147,6 +222,95 @@ document.getElementById("version").textContent = APP_VERSION;
       if (document.visibilityState === "visible") reg.update();
     });
   }).catch(function () {});
+})();
+</script>
+
+<!-- ===== CODES: feste Liste der Zugangscodes und Kennwort. Änderungen nur hier. ===== -->
+<script id="CODES">
+// Kennwort des Lehrkraft-Bereichs. Nur ein Sichtschutz: Es steht im öffentlichen Programmcode.
+// Groß- und Kleinschreibung spielt bei der Eingabe keine Rolle.
+const LEHRKRAFT_KENNWORT = "Anka7";
+// Für alle Kinder, bei denen nichts gespeichert wird. Nie mit Klasse oder Gruppe.
+const GEMEINSAMER_CODE = "ZQX-D44";
+// Je ein Kind, Fortschritt wird gespeichert. Nie mit Klasse oder Gruppe.
+const EINZELCODES = [
+  "6QW-YCD", "6V2-VXU", "G3K-QKX", "JNR-XMP", "KDC-UU3",
+  "NMC-H3S", "QXU-6MH", "VBW-WPY", "VFF-42S", "ZJK-YCP"
+];
+</script>
+<!-- ===== ENDE CODES ===== -->
+
+<script>
+(function () {
+  /* Speicher: ein Schlüssel für die ganze App (Aufbau nach Bauplan A6). */
+  const SPEICHER_SCHLUESSEL = "esz-rechtschreib-training";
+  const SCHEMA = 1;
+  function neuerSpeicher() { return { schema: SCHEMA, aktuellerCode: "", profile: [], geraet: {}, lehrkraft: {} }; }
+  function ladeSpeicher() {
+    try {
+      const roh = localStorage.getItem(SPEICHER_SCHLUESSEL);
+      if (roh) {
+        const daten = JSON.parse(roh);
+        if (daten && daten.schema === SCHEMA) return daten;
+      }
+    } catch (e) {}
+    const neu = neuerSpeicher();
+    try { localStorage.setItem(SPEICHER_SCHLUESSEL, JSON.stringify(neu)); } catch (e) {}
+    return neu;
+  }
+  ladeSpeicher();
+
+  /* Ansichten */
+  const ANSICHTEN = ["ansicht-start", "ansicht-einstellungen", "ansicht-kennwort", "ansicht-lehrkraft"];
+  function zeige(id) {
+    ANSICHTEN.forEach(function (a) { document.getElementById(a).hidden = (a !== id); });
+    window.scrollTo(0, 0);
+    const kopf = document.querySelector("#" + id + " h2");
+    if (kopf) kopf.focus({ preventScroll: true });
+  }
+  function auf(id, fn) { document.getElementById(id).addEventListener("click", fn); }
+
+  document.getElementById("einstellungen-version").textContent = APP_VERSION;
+  auf("zu-einstellungen", function () { zeige("ansicht-einstellungen"); });
+  auf("einstellungen-zurueck", function () { zeige("ansicht-start"); });
+  auf("zu-lehrkraft", function () {
+    document.getElementById("kennwort").value = "";
+    document.getElementById("kennwort-hinweis").hidden = true;
+    zeige("ansicht-kennwort");
+    document.getElementById("kennwort").focus();
+  });
+  auf("kennwort-zurueck", function () { document.getElementById("kennwort").value = ""; zeige("ansicht-einstellungen"); });
+
+  document.getElementById("kennwort-formular").addEventListener("submit", function (e) {
+    e.preventDefault();
+    const eingabe = document.getElementById("kennwort").value.trim().toLowerCase();
+    if (eingabe === LEHRKRAFT_KENNWORT.toLowerCase()) {
+      document.getElementById("kennwort").value = "";
+      document.getElementById("kennwort-hinweis").hidden = true;
+      zeigeCodes();
+      zeige("ansicht-lehrkraft");
+    } else {
+      document.getElementById("kennwort-hinweis").hidden = false;
+      document.getElementById("kennwort").select();
+    }
+  });
+
+  function zeigeCodes() {
+    document.getElementById("code-gemeinsam").textContent = GEMEINSAMER_CODE;
+    const liste = document.getElementById("code-einzel");
+    liste.innerHTML = "";
+    EINZELCODES.forEach(function (code, i) {
+      const li = document.createElement("li");
+      const nr = document.createElement("span"); nr.className = "nr"; nr.textContent = (i + 1) + ".";
+      const c = document.createElement("span"); c.className = "code"; c.textContent = code;
+      li.appendChild(nr); li.appendChild(c); liste.appendChild(li);
+    });
+  }
+  auf("lehrkraft-verlassen", function () {
+    document.getElementById("code-einzel").innerHTML = "";
+    document.getElementById("code-gemeinsam").textContent = "";
+    zeige("ansicht-einstellungen");
+  });
 })();
 </script>
 
