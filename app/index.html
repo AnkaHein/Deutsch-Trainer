@@ -148,6 +148,32 @@
   .kachel.einfach { grid-template-columns: minmax(0, 1fr); }
   .kachel.einfach .bald { grid-column: 1; }
   .hilfe { margin: 12px 0 0; padding: 12px 16px; border-radius: 12px; background: var(--accent-soft); border-left: 5px solid var(--accent); }
+  .lw-wahl { flex-wrap: wrap; justify-content: center; max-width: 280px; }
+  .text.zeichen-wahl .lw-wahl button { min-width: 48px; font-size: 1.35rem; padding: 0 12px; }
+  .text.komma { line-height: 1.5; }
+  .einheit-k { white-space: nowrap; }
+  .komma-stelle { display: inline-block; vertical-align: baseline; width: 28px; min-height: 48px; margin: 2px 0; padding: 0; font: inherit; line-height: 44px; color: var(--ink); background: transparent; border: 0; border-bottom: 3px dotted var(--line); border-radius: 8px; cursor: pointer; }
+  .komma-stelle:hover:not(:disabled) { background: var(--surface-2); }
+  .komma-stelle.gewaehlt { background: var(--accent-soft); border-bottom: 3px solid var(--accent); }
+  .komma-stelle.richtig { background: var(--accent); color: var(--accent-ink); border-bottom-color: transparent; }
+  .komma-stelle.fehlt { background: var(--amber-soft); border-bottom: 3px solid var(--amber); }
+  .komma-stelle.bleibt { color: var(--ink-soft); border-bottom: 3px dashed var(--ink-soft); }
+  .komma-stelle:disabled { cursor: default; }
+  .luecken-wort.einzeln { margin: 6px 3px 12px; }
+  .luecken-wort.einzeln .lw-text { min-width: 36px; text-align: center; font-size: 1.3rem; padding: 0 6px; }
+  .luecke-feld { display: inline-block; vertical-align: baseline; min-width: 44px; min-height: 48px; margin: 2px 5px; padding: 0 8px; font: inherit; font-size: 1.3rem; line-height: 44px; color: var(--ink-soft); background: var(--surface); border: 2px dashed var(--ink-soft); border-radius: 10px; cursor: pointer; }
+  .luecke-feld.gefuellt { color: var(--accent); font-weight: 700; border-style: solid; border-color: var(--accent); background: var(--accent-soft); }
+  .luecke-feld.aktiv { outline: 3px solid var(--accent); outline-offset: 2px; }
+  .luecke-feld.richtig { background: var(--accent); color: var(--accent-ink); border: 2px solid var(--accent); font-weight: 700; }
+  .luecke-feld.fehlt { background: var(--amber-soft); color: var(--ink); border: 2px solid var(--amber); font-weight: 700; }
+  .luecke-feld:disabled { cursor: default; }
+  .wahl-panel { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--line); }
+  .panel-titel { margin: 0 0 10px; font-size: .95rem; color: var(--ink-soft); }
+  .panel-knoepfe { display: flex; flex-wrap: wrap; gap: 10px; }
+  .panel-knoepfe button { min-width: 56px; min-height: 52px; padding: 0 14px; font: inherit; font-size: 1.4rem; font-weight: 700; color: var(--ink); background: var(--surface); border: 2px solid var(--line); border-radius: 12px; cursor: pointer; }
+  .panel-knoepfe button:hover { background: var(--surface-2); }
+  .panel-knoepfe button[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); }
+
   .ergebnis { margin-top: 16px; }
   .ergebnis strong { font-size: 1.15rem; display: block; margin-bottom: 8px; }
   .legende { display: flex; flex-wrap: wrap; gap: 8px 20px; margin: 10px 0 0; padding: 0; list-style: none; font-size: .9rem; color: var(--ink-soft); }
@@ -344,7 +370,7 @@
 <footer>Evangelisches Schulzentrum Bad Düben &middot; <span style="white-space:nowrap">Version <span id="version"></span></span></footer>
 
 <script>
-const APP_VERSION = "1.9.0";
+const APP_VERSION = "1.10.0";
 document.getElementById("version").textContent = APP_VERSION;
 
 (function () {
@@ -442,19 +468,36 @@ const EINZELCODES = [
   /* Bereiche (Kacheln): noch nicht gebaute Bereiche zeigen "kommt bald". */
   const BEREICHE = [
     { id: "gross-klein", titel: "Groß- und Kleinschreibung", sub: "Wörter im Text anklicken", aktiv: true },
-    { id: "komma", titel: "Kommasetzung", sub: "Kommas an die richtige Stelle" },
-    { id: "woertliche-rede", titel: "Wörtliche Rede", sub: "Zeichen vor und nach der Rede" },
-    { id: "satzschluss", titel: "Satzschlusszeichen", sub: "Punkt, Fragezeichen, Ausrufezeichen" },
+    { id: "komma", titel: "Kommasetzung", sub: "Kommas an die richtige Stelle", aktiv: true,
+      hilfe: "Zwischen Dingen in einer Reihe steht ein Komma (Äpfel, Birnen und Kirschen). Vor „und“ steht dann keins. Auch ein Satzteil mit „weil“, „dass“, „wenn“, „der“, „die“, „das“, „aber“, „sondern“ oder „denn“ wird mit einem Komma abgetrennt. Lies den Satz laut: Wo machst du beim Sprechen eine kleine Pause?" },
+    { id: "woertliche-rede", titel: "Wörtliche Rede", sub: "Zeichen vor und nach der Rede", aktiv: true,
+      hilfe: "Was jemand sagt, steht in Anführungszeichen: vorne unten („), hinten oben (“). Steht der Satz mit „sagt“ davor, folgt ein Doppelpunkt: Mia sagt: „Ich bin müde.“ Steht er danach, folgt nach den Anführungszeichen ein Komma: „Ich bin müde“, sagt Mia. Fragezeichen und Ausrufezeichen bleiben innen, vor den Anführungszeichen. Das Komma steht dann trotzdem dahinter.",
+      anleitung: "Tippe bei jeder Lücke das Zeichen an, das dorthin gehört." },
+    { id: "satzschluss", titel: "Satzschlusszeichen", sub: "Punkt, Fragezeichen, Ausrufezeichen", aktiv: true,
+      hilfe: "Schau, was der Satz macht: Wird etwas erzählt oder gesagt, steht ein Punkt. Wird etwas gefragt, steht ein Fragezeichen. Wird gerufen oder befohlen, steht ein Ausrufezeichen. Eine Frage, die in einem Satz nur erzählt wird („Ich frage mich, ob …“), bekommt einen Punkt.",
+      anleitung: "Tippe bei jeder Lücke das Zeichen an, das am Ende des Satzes steht." },
     { id: "laute", titel: "Laute und Buchstaben", sub: "V/F, Ä/E, D/T und mehr", aktiv: true, unterthemen: [
       { id: "laute-vf", titel: "V oder F", sub: "Wörter mit V und F", aktiv: true,
         hilfe: "V und F klingen oft gleich, deshalb hilft das Hören nicht. Zwei Merkhilfen: Wörter, die mit „ver“ oder „vor“ anfangen, schreibt man mit V (zum Beispiel „vergessen“ und „vorbei“). Wörter mit „fr“ am Anfang schreibt man mit F (zum Beispiel „Freund“ und „froh“). Wenn du unsicher bist: Schreib das Wort mit beiden Buchstaben auf Papier. Welches Wort sieht richtig aus?" },
-      { id: "laute-ae", titel: "Ä oder E", sub: "Wörter mit Ä und E" },
-      { id: "laute-dt", titel: "D oder T", sub: "Wörter mit D und T" }
+      { id: "laute-ae", titel: "Ä oder E", sub: "Wörter mit Ä und E", aktiv: true,
+        hilfe: "Gibt es ein verwandtes Wort mit a (oder mit au)? Dann schreibt man ä (oder äu). Beispiele: Bäume – Baum, Häuser – Haus, Hände – Hand. Gibt es kein verwandtes Wort mit a, schreibt man e (oder eu), zum Beispiel bei Esel, Eule und Freunde. Es gibt auch Ausnahmen, zum Beispiel „Eltern“." },
+      { id: "laute-dt", titel: "D oder T", sub: "Wörter mit D und T", aktiv: true,
+        hilfe: "Verlängere das Wort! Hund – Hunde: Du hörst ein d, also schreibt man d. So geht es auch bei den anderen Buchstaben: Korb – Körbe (b), Berg – Berge (g), Brot – Brote (t), Schrank – Schränke (k)." },
+      { id: "laute-weitere", titel: "Weitere Laute", sub: "ß, ck, tz, chs und x", aktiv: true,
+        hilfe: "Sprich das Wort langsam. Wird der Laut vor der Stelle kurz gesprochen, schreibt man ss, ck oder tz (Wasser, Jacke, Katze). Wird er lang gesprochen oder steht ei, au oder eu davor, schreibt man ß (Fuß, Gruß, weiß, Strauß). Nach l, n und r schreibt man z (Herz, Holz, Salz). Bei x und chs hilft keine Regel, hier musst du dir die Wörter merken: Fuchs, Wachs, Hexe, Taxi.",
+        anleitung: "Tippe bei jedem Wort die richtige Schreibweise an." }
     ] },
-    { id: "dehnung", titel: "Dehnung und Schärfung", sub: "h, ie, doppelte Konsonanten" },
-    { id: "wortbausteine", titel: "Wortbausteine", sub: "Vorsilben und Endungen" },
-    { id: "zusammen-getrennt", titel: "Zusammen oder getrennt", sub: "dass oder das, wieder oder wider" },
-    { id: "fehlerwoerter", titel: "Fehlerwörter", sub: "Den Fehler im Satz finden" }
+    { id: "dehnung", titel: "Dehnung und Schärfung", sub: "h, ie, doppelte Konsonanten", aktiv: true,
+      hilfe: "Sprich das Wort langsam. Klingt der Laut lang, steht oft ie (Tier, Spiel) oder ein h (Zahn, Bohne), manchmal auch nur ein einfacher Buchstabe (Name, Rose). Klingt der Laut kurz, steht oft ein doppelter Buchstabe (Sonne, Mutter). Beim h hilft: Verlängere das Wort. Er wohnt – wohnen: Das h bleibt.",
+      anleitung: "Tippe bei jedem Wort die richtige Schreibweise an." },
+    { id: "wortbausteine", titel: "Wortbausteine", sub: "Vorsilben und Endungen", aktiv: true,
+      hilfe: "Schau dir an, was vor oder nach dem Wortstamm steht. „ver“ und „vor“ klingen ähnlich: Mit „vor“ ist oft „davor“ gemeint (vorbei, vorsichtig), „ver“ ist oft eine Veränderung (vergessen, verlieren). Bei „ig“ und „lich“ hilft: Verlängere das Wort oder suche ein verwandtes Wort (Freund – freundlich, Ruhe – ruhig). Wörter auf „-heit“, „-keit“ und „-ung“ sind Namenwörter und werden großgeschrieben: Gesundheit, Sauberkeit, Zeitung.",
+      anleitung: "Tippe bei jedem Wort den Wortbaustein an, der passt." },
+    { id: "zusammen-getrennt", titel: "Zusammen oder getrennt", sub: "dass oder das, wieder oder wider", aktiv: true,
+      hilfe: "Kannst du „dieses“, „welches“ oder „jenes“ einsetzen? Dann schreibt man „das“. Geht das nicht, schreibt man „dass“. Bei „seid“ und „seit“: Passt „ihr“ dazu (ihr seid), schreibt man „seid“. Sonst heißt es „seit“ (seit gestern). Bei „wieder“ und „wider“: Passt „noch einmal“, schreibt man „wieder“ (wiederholen, wiedersehen). Passt „gegen“, schreibt man „wider“ (widersprechen). „Rad fahren“ schreibt man getrennt. Steht „das“ oder „beim“ davor, schreibt man zusammen und groß: das Radfahren, beim Autofahren.",
+      anleitung: "Tippe bei jeder Lücke das Wort an, das in den Satz passt." },
+    { id: "fehlerwoerter", titel: "Fehlerwörter", sub: "Den Fehler im Satz finden", aktiv: true,
+      hilfe: "Lies jeden Satz langsam, Wort für Wort. Frag dich: Wie schreibe ich dieses Wort sonst? Fällt dir ein verwandtes Wort ein? Zum Beispiel: fahren – Fahrrad. Tippe das Wort an, das dir falsch aussieht." }
   ];
   const STUFEN = ["leicht", "mittel", "schwer"];
   let stufe = "leicht";   // Beim ersten Start "leicht". Nur bei Einzelcodes wird die Wahl im Profil gemerkt.
@@ -530,22 +573,222 @@ const EINZELCODES = [
     "laute-vf": {
       /* Typ B: {Auswahl:richtig} steht für eine Lücke im Wort. */
       leicht: [
-        { id: "vf-l-01", typ: "B", text: "Der {V/F:V}ogel sitzt auf dem {V/F:F}eld und sucht {V/F:F}utter." },
-        { id: "vf-l-02", typ: "B", text: "Mein {V/F:V}ater kauft {V/F:V}ier {V/F:F}ische." },
-        { id: "vf-l-03", typ: "B", text: "Unser {V/F:F}reund zeigt uns ein {V/F:F}oto von {V/F:V}ier Hunden." },
-        { id: "vf-l-04", typ: "B", text: "Die {V/F:F}amilie geht {V/F:V}or dem Essen in den Garten." }
+        { id: "vf-l-01", typ: "B", text: "Der {V/F=V}ogel sitzt auf dem {V/F=F}eld und sucht {V/F=F}utter." },
+        { id: "vf-l-02", typ: "B", text: "Mein {V/F=V}ater kauft {V/F=V}ier {V/F=F}ische." },
+        { id: "vf-l-03", typ: "B", text: "Unser {V/F=F}reund zeigt uns ein {V/F=F}oto von {V/F=V}ier Hunden." },
+        { id: "vf-l-04", typ: "B", text: "Die {V/F=F}amilie geht {V/F=V}or dem Essen in den Garten." }
       ],
       mittel: [
-        { id: "vf-m-01", typ: "B", text: "{V/F:V}orsicht, der {V/F:F}uchs hat sich im Garten {V/F:V}ersteckt!" },
-        { id: "vf-m-02", typ: "B", text: "Meine {V/F:F}amilie hat {V/F:F}ast alles {V/F:V}erpackt." },
-        { id: "vf-m-03", typ: "B", text: "Am {V/F:V}ormittag {V/F:V}ergisst Lena oft ihr {V/F:F}rühstück." },
-        { id: "vf-m-04", typ: "B", text: "Der {V/F:F}ahrer achtet auf den {V/F:V}erkehr und {V/F:F}ährt langsam." }
+        { id: "vf-m-01", typ: "B", text: "{V/F=V}orsicht, der {V/F=F}uchs hat sich im Garten {V/F=V}ersteckt!" },
+        { id: "vf-m-02", typ: "B", text: "Meine {V/F=F}amilie hat {V/F=F}ast alles {V/F=V}erpackt." },
+        { id: "vf-m-03", typ: "B", text: "Am {V/F=V}ormittag {V/F=V}ergisst Lena oft ihr {V/F=F}rühstück." },
+        { id: "vf-m-04", typ: "B", text: "Der {V/F=F}ahrer achtet auf den {V/F=V}erkehr und {V/F=F}ährt langsam." }
       ],
       schwer: [
-        { id: "vf-s-01", typ: "B", text: "Im No{V/F:V}ember bekommt Jan {V/F:F}ieber und braucht {V/F:V}itamine." },
-        { id: "vf-s-02", typ: "B", text: "Der Ele{V/F:F}ant im Zoo schaut dem {V/F:F}otografen zu und {V/F:V}erschwindet dann im Stall." },
-        { id: "vf-s-03", typ: "B", text: "Oma spielt Kla{V/F:V}ier, Opa macht ein {V/F:F}oto und alle {V/F:F}reuen sich." },
-        { id: "vf-s-04", typ: "B", text: "Die Lehrerin zeigt, wie ein {V/F:V}ulkan ausbricht und {V/F:F}euer spuckt." }
+        { id: "vf-s-01", typ: "B", text: "Im No{V/F=V}ember bekommt Jan {V/F=F}ieber und braucht {V/F=V}itamine." },
+        { id: "vf-s-02", typ: "B", text: "Der Ele{V/F=F}ant im Zoo schaut dem {V/F=F}otografen zu und {V/F=V}erschwindet dann im Stall." },
+        { id: "vf-s-03", typ: "B", text: "Oma spielt Kla{V/F=V}ier, Opa macht ein {V/F=F}oto und alle {V/F=F}reuen sich." },
+        { id: "vf-s-04", typ: "B", text: "Die Lehrerin zeigt, wie ein {V/F=V}ulkan ausbricht und {V/F=F}euer spuckt." }
+      ]
+    },
+    "laute-ae": {
+      leicht: [
+        { id: "ae-l-01", typ: "B", text: "Im Garten wachsen {Ä/E=Ä}pfel an den B{äu/eu=äu}men." },
+        { id: "ae-l-02", typ: "B", text: "Die {Ä/E=E}nte schwimmt im Teich, und die W{ä/e=ä}rme der Sonne tut ihr gut." },
+        { id: "ae-l-03", typ: "B", text: "Vor dem {Ä/E=E}ssen wäscht Anna ihre H{ä/e=ä}nde und putzt die Z{e/ä=ä}hne." },
+        { id: "ae-l-04", typ: "B", text: "In der Scheune leben M{eu/äu=äu}se und ein {Ä/E=E}sel." }
+      ],
+      mittel: [
+        { id: "ae-m-01", typ: "B", text: "In den St{e/ä=ä}dten stehen viele H{eu/äu=äu}ser, aber nur selten sieht man eine {E/Ä=E}ule." },
+        { id: "ae-m-02", typ: "B", text: "Im Winter wird es k{ä/e=ä}lter, und die Kinder bauen mit {E/Ä=E}ifer einen Schneemann." },
+        { id: "ae-m-03", typ: "B", text: "Im Herbst bringt der Bauer die {E/Ä=E}rnte in die Sch{eu/äu=eu}ne." },
+        { id: "ae-m-04", typ: "B", text: "Heute lernen wir über fremde L{e/ä=ä}nder und ihre {E/Ä=E}inwohner." }
+      ],
+      schwer: [
+        { id: "ae-s-01", typ: "B", text: "Meine {Ä/E=E}ltern essen die H{ä/e=ä}lfte des Kuchens." },
+        { id: "ae-s-02", typ: "B", text: "Mama sch{ä/e=ä}lt die Äpfel, und die Kinder essen sie mit {Ä/E=E}ifer." },
+        { id: "ae-s-03", typ: "B", text: "Der Verk{eu/äu=äu}fer arbeitet in einem großen Geb{eu/äu=äu}de, und seine Fr{äu/eu=eu}nde besuchen ihn." },
+        { id: "ae-s-04", typ: "B", text: "Im Schloss gibt es viele R{eu/äu=äu}me, und nachts h{eu/äu=eu}lt der Wind durch die G{e/ä=ä}nge." }
+      ]
+    },
+    "laute-dt": {
+      leicht: [
+        { id: "dt-l-01", typ: "B", text: "Der Hun{d/t=d} liegt im Zel{t/d=t} und frisst sein Bro{d/t=t}." },
+        { id: "dt-l-02", typ: "B", text: "Das Kin{t/d=d} schenkt dem Opa ein Bil{d/t=d} und ein Hef{t/d=t}." },
+        { id: "dt-l-03", typ: "B", text: "Am Aben{t/d=d} geht der Mon{t/d=d} auf, und im Zel{d/t=t} ist es warm." },
+        { id: "dt-l-04", typ: "B", text: "Mit dem Zu{k/g=g} fahren wir zum Ber{g/k=g} und legen die Jacken in den Schran{g/k=k}." }
+      ],
+      mittel: [
+        { id: "dt-m-01", typ: "B", text: "Der Die{p/b=b} rennt mit einem Ko{b/p=b} über den Hof, aber der Hun{t/d=d} bellt laut." },
+        { id: "dt-m-02", typ: "B", text: "Im Gar{d/t=t}en wächst viel Obs{d/t=t}, und die Kin{t/d=d}er pflücken es." },
+        { id: "dt-m-03", typ: "B", text: "Das Kle{d/t=d} liegt im Schran{k/g=k}, und der Mon{d/t=d} scheint heute hell." },
+        { id: "dt-m-04", typ: "B", text: "Der Wa{k/g=g}en rollt den We{g/k=g} hinunter, und der Junge sagt Dan{k/g=k}e." }
+      ],
+      schwer: [
+        { id: "dt-s-01", typ: "B", text: "Der Die{b/p=b} flüchtet auf einem Pfer{d/t=d} bis zum Fel{t/d=d}." },
+        { id: "dt-s-02", typ: "B", text: "Der Sta{b/p=b} wirbelt auf, der Zwer{k/g=g} niest laut und sucht seinen Hu{t/d=t}." },
+        { id: "dt-s-03", typ: "B", text: "Auf dem Pfa{d/t=d} findet Jan einen Ko{b/p=b} voller Obs{t/d=t}." },
+        { id: "dt-s-04", typ: "B", text: "Das Gel{d/t=d} liegt im Schran{k/g=k}, und der Die{p/b=b} kennt den Platz." }
+      ]
+    },
+    "laute-weitere": {
+      leicht: [
+        { id: "wl-l-01", typ: "B", text: "Der Fu{x/chs=chs} läuft über die Stra{ss/ß=ß}e." },
+        { id: "wl-l-02", typ: "B", text: "Mia hat ein Her{z/tz=z} aus Papier, und die Ka{tz/z=tz}e sitzt auf dem Pla{z/tz=tz}." },
+        { id: "wl-l-03", typ: "B", text: "Mama ba{k/ck=ck}t einen Kuchen, und das Wa{ß/ss=ss}er für den Tee ist hei{ss/ß=ß}." },
+        { id: "wl-l-04", typ: "B", text: "Opa trägt eine Mü{tz/z=tz}e, sieht einen Fu{chs/x=chs} und lacht über einen Wi{tz/z=tz}." }
+      ],
+      mittel: [
+        { id: "wl-m-01", typ: "B", text: "Wir mü{ss/ß=ss}en den Rü{ck/k=ck}weg nehmen, denn die Stra{ss/ß=ß}e ist gesperrt." },
+        { id: "wl-m-02", typ: "B", text: "Der Bo{x/chs=x}er zieht seine Ja{k/ck=ck}e an und fährt mit dem Ta{x/chs=x}i nach Hause." },
+        { id: "wl-m-03", typ: "B", text: "Der Schreiner sägt Hol{z/tz=z} und reibt den Sit{z/tz=tz} mit Wa{x/chs=chs} ein." },
+        { id: "wl-m-04", typ: "B", text: "Das Mädchen wei{ss/ß=ß}, dass beim Fu{ss/ß=ß}ball der Pla{z/tz=tz} nass wird." }
+      ],
+      schwer: [
+        { id: "wl-s-01", typ: "B", text: "Über den Flu{ß/ss=ss} führt eine Brü{k/ck=ck}e zum Schlo{ss/ß=ss}." },
+        { id: "wl-s-02", typ: "B", text: "Die He{x/chs=x}e im Märchen füttert einen O{x/chs=chs}en mit Nü{ß/ss=ss}en." },
+        { id: "wl-s-03", typ: "B", text: "Im Frühling wa{chs/x=chs}en die Blumen, und Opa schenkt Oma einen Stra{uss/uß=uß} mit einem Gru{ß/ss=ß}." },
+        { id: "wl-s-04", typ: "B", text: "Beim We{chs/x=chs}el der Reifen hat sich Papa an der E{ck/k=ck}e gesto{ß/ss=ß}en." }
+      ]
+    },
+    "dehnung": {
+      leicht: [
+        { id: "dn-l-01", typ: "B", text: "Das T{ie/i=ie}r trinkt aus der Ka{n/nn=nn}e, und die So{nn/n=nn}e scheint." },
+        { id: "dn-l-02", typ: "B", text: "Mia putzt ihre Za{-h/h=h}ne, schreibt ihren Na{h/-h=-h}men an die Ta{-h/h=-h}fel." },
+        { id: "dn-l-03", typ: "B", text: "Ich esse gern Su{pp/p=pp}e, und meine Mu{t/tt=tt}er kocht sie mit Bo{-h/h=h}nen." },
+        { id: "dn-l-04", typ: "B", text: "Im Zi{m/mm=mm}er liegt viel Sp{i/ie=ie}lzeug, und der Ha{m/mm=mm}er gehört Papa." }
+      ],
+      mittel: [
+        { id: "dn-m-01", typ: "B", text: "Auf der W{i/ie=ie}se summt eine B{i/ie=ie}ne, und die Kinder spielen mit dem Ba{ll/l=ll}." },
+        { id: "dn-m-02", typ: "B", text: "Mein Bruder wo{h/-h=h}nt in einer Stadt, ne{h/-h=h}mt den Bus und zeigt mir die Ro{h/-h=-h}se." },
+        { id: "dn-m-03", typ: "B", text: "Papa räumt den Ke{l/ll=ll}er auf, findet eine Do{ss/s=s}e und eine alte Ta{ss/s=ss}e." },
+        { id: "dn-m-04", typ: "B", text: "Meine Ho{ss/s=s}e ist nass, und die Mu{tt/t=tt}er hängt sie in die So{nn/n=nn}e." }
+      ],
+      schwer: [
+        { id: "dn-s-01", typ: "B", text: "Unser Le{h/-h=h}rer erklärt uns die Masch{ie/i=i}ne und trinkt dabei einen Ka{ff/f=ff}ee." },
+        { id: "dn-s-02", typ: "B", text: "Am Ba{h/-h=h}nhof sieht Tom einen großen Ko{ff/f=ff}er und ein Sch{ie/i=i}ff." },
+        { id: "dn-s-03", typ: "B", text: "Lena fä{h/-h=h}rt mit der Fä{h/-h=h}re über den See und träumt von einem Krokod{i/ie=i}l." },
+        { id: "dn-s-04", typ: "B", text: "Zum Mi{t/tt=tt}ag backt Papa Pizza mit Me{h/-h=h}l und kocht eine Su{pp/p=pp}e." }
+      ]
+    },
+    "wortbausteine": {
+      leicht: [
+        { id: "wb-l-01", typ: "B", text: "Tim darf seine Mütze nicht {vor/ver=ver}gessen und geht {ver/vor=vor}sichtig über die Straße." },
+        { id: "wb-l-02", typ: "B", text: "Die Kinder rennen {vor/ver=vor}bei, und Tim will seine Schuhe nicht {vor/ver=ver}lieren." },
+        { id: "wb-l-03", typ: "B", text: "Der See ist ganz ruh{ig/lich=ig}, und die Kinder sind fröh{ig/lich=lich} und lust{lich/ig=ig}." },
+        { id: "wb-l-04", typ: "B", text: "Opa ist immer freund{lich/ig=lich} und gedul{ig/lich=ig}, aber er {ver/vor=ver}gisst oft seine Brille." }
+      ],
+      mittel: [
+        { id: "wb-m-01", typ: "B", text: "Die Zeit{ung/heit=ung} berichtet über die Gesund{heit/keit=heit} von Kindern und die Sauber{heit/keit=keit} in der Schule." },
+        { id: "wb-m-02", typ: "B", text: "Papa bezahlt die Rechn{ung/keit/heit=ung}, denn er schätzt die Pünktlich{heit/keit/ung=keit}." },
+        { id: "wb-m-03", typ: "B", text: "Im Dunkeln sind wir ganz vorsicht{lich/ig=ig}, aber die Dunkel{heit/keit=heit} hat uns noch nie {vor/ver=ver}ängstigt." },
+        { id: "wb-m-04", typ: "B", text: "Die Erfind{ung/keit=ung} des Autos hat die Schnell{keit/igkeit=igkeit} der Reisen verändert, und viele {vor/ver=ver}reisen gern." }
+      ],
+      schwer: [
+        { id: "wb-s-01", typ: "B", text: "Plötz{lich/ig=lich} zog ein Gewitter auf, und der Weg wurde gefähr{ig/lich=lich} und schmutz{ig/lich=ig}." },
+        { id: "wb-s-02", typ: "B", text: "Die Lehrerin lobt die Ehrlich{keit/heit=keit} und die Wahr{heit/keit=heit} ihrer Schülerin, die ihre Mein{ung/heit=ung} frei sagt." },
+        { id: "wb-s-03", typ: "B", text: "Ben nutzte die Gelegen{keit/heit=heit} und zeigte seine Zeichn{ung/heit=ung}, und ihm gefiel die Möglich{heit/keit=keit}, sie auszustellen." },
+        { id: "wb-s-04", typ: "B", text: "Mein Bruder hat sein Handy {vor/ver=ver}loren und ist ängst{lich/ig=lich}, aber die Suche ist langweil{ig/lich=ig}." }
+      ]
+    },
+    "zusammen-getrennt": {
+      leicht: [
+        { id: "zg-l-01", typ: "W", text: "{Dass/Das=Das} Wetter ist schön, und ich weiß, {dass/das=dass} wir draußen spielen dürfen." },
+        { id: "zg-l-02", typ: "W", text: "Ich glaube, {dass/das=dass} {dass/das=das} Eis lecker schmeckt." },
+        { id: "zg-l-03", typ: "W", text: "{Seit/Seid=Seid} ihr bereit? Wir warten {seit/seid=seit} einer Stunde." },
+        { id: "zg-l-04", typ: "W", text: "Mama sagt, {dass/das=dass} ich {das/dass=das} Buch holen soll." }
+      ],
+      mittel: [
+        { id: "zg-m-01", typ: "W", text: "Das Buch, {dass/das=das} ich gestern gelesen habe, war so spannend, {dass/das=dass} ich nicht aufhören konnte." },
+        { id: "zg-m-02", typ: "W", text: "Wir sehen uns {wider/wieder=wieder}, denn ich weiß, {dass/das=dass} du morgen kommst." },
+        { id: "zg-m-03", typ: "W", text: "Ihr {seid/seit=seid} schon {seit/seid=seit} einer Stunde hier, und ich weiß, {dass/das=dass} ihr müde seid." },
+        { id: "zg-m-04", typ: "W", text: "Der Lehrer sagt, {das/dass=dass} er die Aufgabe {wieder/wider=wieder}holt, weil {dass/das=das} Kind sie nicht verstanden hat." }
+      ],
+      schwer: [
+        { id: "zg-s-01", typ: "W", text: "Ich möchte am Wochenende {radfahren/Rad fahren=Rad fahren}, weil ich das {Radfahren/Rad fahren=Radfahren} liebe." },
+        { id: "zg-s-02", typ: "W", text: "Mia {wider/wieder=wider}spricht ihrer Mutter oft, aber heute ist sie {wieder/wider=wieder} brav und sagt, {das/dass=dass} es ihr leid tut." },
+        { id: "zg-s-03", typ: "W", text: "{Seid/Seit=Seit} wann {seid/seit=seid} ihr hier? Wir warten {seid/seit=seit} dem Morgen auf euch." },
+        { id: "zg-s-04", typ: "W", text: "Papa sagt, {das/dass=dass} er beim {Autofahren/Auto fahren=Autofahren} gern Musik hört, aber heute will er lieber {radfahren/Rad fahren=Rad fahren}." }
+      ]
+    },
+    "satzschluss": {
+      leicht: [
+        { id: "sz-l-01", typ: "D", text: "Wo ist mein Ball{?/./!=?} Er liegt im Garten{?/!/.=.} Hol ihn sofort{?/./!=!}", einheit: "Text" },
+        { id: "sz-l-02", typ: "D", text: "Der Hund bellt laut{!/?/.=.} Wer kommt da{./?/!=?} Ich glaube, es ist der Briefträger{?/./!=.}", einheit: "Text" },
+        { id: "sz-l-03", typ: "D", text: "Hilfe{?/!/.=!} Das Wasser steigt{?/!/.=.} Wo ist mein Boot{?/./!=?}", einheit: "Text" },
+        { id: "sz-l-04", typ: "D", text: "Heute scheint die Sonne{?/!/.=.} Kommst du mit ins Freibad{./?/!=?} Ja, gern{?/!/.=!}", einheit: "Text" }
+      ],
+      mittel: [
+        { id: "sz-m-01", typ: "D", text: "Lena fragt, ob wir ins Kino gehen{?/!/.=.} Ich weiß es noch nicht{./!/?=.} Hast du Lust mitzukommen{./!/?=?} Achtung{./!/?=!} Der Bus fährt gleich ab{?/./!=.}", einheit: "Text" },
+        { id: "sz-m-02", typ: "D", text: "Hallo{!/./?=!} Weißt du, wie spät es ist{?/!/.=?} Ich habe keine Uhr{?/./!=.} Fragen wir den Mann dort{!/?/.=?}", einheit: "Text" },
+        { id: "sz-m-03", typ: "D", text: "Der Lehrer sagt, dass morgen ein Test geschrieben wird{./?/!=.} Wer hat das gewusst{./!/?=?} Niemand{?/./!=.} Oh nein{?/./!=!}", einheit: "Text" },
+        { id: "sz-m-04", typ: "D", text: "Ich frage mich, ob es morgen regnet{!/./?=.} Bitte nicht{?/./!=!} Soll ich den Schirm mitnehmen{?/./!=?} Ja, das ist klug{./!/?=.}", einheit: "Text" }
+      ],
+      schwer: [
+        { id: "sz-s-01", typ: "D", text: "Ich möchte wissen, wer das gewesen ist{?/./!=.} Warst du das{?/!/.=?} Nein, ich war es nicht{?/./!=.} Dann war es der Wind{./?/!=.}", einheit: "Text" },
+        { id: "sz-s-02", typ: "D", text: "Mama fragte, wohin wir gehen wollten{./!/?=.} Wir wussten es noch nicht{./!/?=.} Kennt jemand ein gutes Restaurant{./!/?=?} Wie schön{?/!/.=!} Am Marktplatz gibt es eins{./?/!=.}", einheit: "Text" },
+        { id: "sz-s-03", typ: "D", text: "Hast du gehört, dass die Schule morgen ausfällt{./!/?=?} Das kann nicht sein{!/./?=.} Alle reden darüber{?/!/.=.} Wer hat das gesagt{!/?/.=?}", einheit: "Text" },
+        { id: "sz-s-04", typ: "D", text: "Der Reporter fragte den Bürgermeister, ob die Brücke bald fertig wird{?/./!=.} Der Bürgermeister lächelte{?/!/.=.} Wann endlich{?/./!=?} Das weiß noch niemand{!/./?=.}", einheit: "Text" }
+      ]
+    },
+    "woertliche-rede": {
+      leicht: [
+        { id: "wr-l-01", typ: "D", text: "Mia sagt{./:/,=:} {„/“=„}Ich habe Hunger.{„/“=“}" },
+        { id: "wr-l-02", typ: "D", text: "{“/„=„}Ich bin müde{„/“=“}{./,/:=,} sagt Tom." },
+        { id: "wr-l-03", typ: "D", text: "Oma ruft{,/:/.=:} {“/„=„}Das Essen ist fertig.{„/“=“}" },
+        { id: "wr-l-04", typ: "D", text: "{„/“=„}Heute scheint die Sonne{“/„=“}{:/./,=,} sagt Papa." }
+      ],
+      mittel: [
+        { id: "wr-m-01", typ: "D", text: "Lena fragt{./:/,=:} {„/“=„}Kommst du mit{./?/!=?}{„/“=“}" },
+        { id: "wr-m-02", typ: "D", text: "{“/„=„}Pass auf{?/./!=!}{„/“=“}{./:/,=,} ruft Tom." },
+        { id: "wr-m-03", typ: "D", text: "Papa fragt{,/./:=:} {„/“=„}Hast du deine Jacke{./?/!=?}{„/“=“} Mia nickt." },
+        { id: "wr-m-04", typ: "D", text: "{„/“=„}Wo warst du{!/?/.=?}{„/“=“}{./,/:=,} fragt Oma." }
+      ],
+      schwer: [
+        { id: "wr-s-01", typ: "D", text: "{„/“=„}Ich habe Hunger{„/“=“}{./:/,=,} sagt Anna{:/,/.=,} {„/“=„}und ich auch.{“/„=“}" },
+        { id: "wr-s-02", typ: "D", text: "Rosa schrie{,/./:=:} {“/„=„}Stopp{,/!/.=!}{„/“=“} Der Fahrer hielt an." },
+        { id: "wr-s-03", typ: "D", text: "Der Lehrer sagte{./:/,=:} {„/“=„}Heute schreiben wir einen Test, aber ihr braucht keine Angst zu haben.{“/„=“}" },
+        { id: "wr-s-04", typ: "D", text: "{„/“=„}Wir fahren morgen ans Meer{„/“=“}{:/./,=,} verkündete Opa{,/./:=,} {„/“=„}und ihr dürft mitkommen!{„/“=“}" }
+      ]
+    },
+    "komma": {
+      leicht: [
+        { id: "km-l-01", typ: "C", text: "Im Garten wachsen Äpfel, Birnen, Kirschen und Pflaumen. Mia pflückt Beeren, Nüsse und Pilze." },
+        { id: "km-l-02", typ: "C", text: "In meiner Schultasche sind ein Heft, ein Stift, ein Lineal und ein Apfel. Ich habe auch ein Buch, eine Dose und eine Flasche dabei." },
+        { id: "km-l-03", typ: "C", text: "Am Strand bauen wir Burgen, graben Löcher und sammeln Muscheln. Das Wasser ist blau, klar und kalt." },
+        { id: "km-l-04", typ: "C", text: "Zum Frühstück gibt es Brot, Butter, Käse und Honig. Papa trinkt Kaffee, Mama trinkt Tee und ich trinke Milch." }
+      ],
+      mittel: [
+        { id: "km-m-01", typ: "C", text: "Ich bleibe heute zu Hause, weil ich krank bin. Mama sagt, dass ich viel trinken soll." },
+        { id: "km-m-02", typ: "C", text: "Wenn die Sonne scheint, gehen wir ins Freibad. Wir freuen uns, weil die Ferien bald beginnen." },
+        { id: "km-m-03", typ: "C", text: "Tom glaubt, dass er die Prüfung schafft. Wenn er lernt, hat er keine Angst." },
+        { id: "km-m-04", typ: "C", text: "Ich weiß, dass du müde bist, weil du so früh aufstehen musstest. Leg dich hin, wenn du magst." }
+      ],
+      schwer: [
+        { id: "km-s-01", typ: "C", text: "Der Hund, der im Garten spielt, gehört meiner Nachbarin. Ich mag ihn, denn er ist sehr freundlich." },
+        { id: "km-s-02", typ: "C", text: "Das ist nicht mein Buch, sondern das von Lena. Sie hat es mir geliehen, aber ich habe es noch nicht gelesen." },
+        { id: "km-s-03", typ: "C", text: "Die Frau, die neben uns wohnt, arbeitet im Krankenhaus. Sie ist müde, aber sie lächelt immer." },
+        { id: "km-s-04", typ: "C", text: "Ich möchte nicht ins Kino, sondern lieber ins Schwimmbad, denn das Wetter ist heiß. Das Schwimmbad, das wir meinen, liegt am Stadtrand." }
+      ]
+    },
+    "fehlerwoerter": {
+      leicht: [
+        { id: "fw-l-01", typ: "F", text: "Mein [Farrad|Fahrrad] steht im Hof. Meine [Muter|Mutter] ruft mich zum Essen. Danach trinke ich ein Glas [Waser|Wasser]." },
+        { id: "fw-l-02", typ: "F", text: "Am [Geburstag|Geburtstag] kommt meine ganze Familie. Opa bringt einen [Hunt|Hund] mit. Wir spielen im [Gaten|Garten]." },
+        { id: "fw-l-03", typ: "F", text: "In den [Verien|Ferien] fahren wir ans Meer. Dort bauen wir eine [Sandburk|Sandburg]. Abends essen wir [Fich|Fisch]." },
+        { id: "fw-l-04", typ: "F", text: "Unsere [Lererin|Lehrerin] liest uns eine Geschichte vor. Alle sitzen auf dem [Teppig|Teppich]. Danach malen wir ein [Bilt|Bild]." }
+      ],
+      mittel: [
+        { id: "fw-m-01", typ: "F", text: "Am [Mitwoch|Mittwoch] gehen wir in die Bibliothek. Dort leihe ich ein Buch über [Pfärde|Pferde] aus. Das Buch ist sehr [spanend|spannend]." },
+        { id: "fw-m-02", typ: "F", text: "Im Hotel gibt es einen [Farstuhl|Fahrstuhl]. Meine Schwester hat [Angts|Angst] vor engen Räumen. Wir nehmen deshalb die [Trepe|Treppe]." },
+        { id: "fw-m-03", typ: "F", text: "Im Unterricht lernen wir etwas über die [Natuhr|Natur]. Unser Lehrer erklärt uns die [Jareszeiten|Jahreszeiten]. Dazu machen wir ein [Experimend|Experiment]." },
+        { id: "fw-m-04", typ: "F", text: "Der [Zirkuss|Zirkus] ist in der Stadt. Ein [Klaun|Clown] macht lustige Späße. Zum Schluss gibt es großen [Aplaus|Applaus]." }
+      ],
+      schwer: [
+        { id: "fw-s-01", typ: "F", text: "Die Lehrerin erklärt uns den [Rythmus|Rhythmus] des Gedichts. Dann holt sie ein [Instrumend|Instrument] aus dem Schrank. Am Ende dürfen wir die [Melodi|Melodie] summen." },
+        { id: "fw-s-02", typ: "F", text: "Im Labor lernen wir etwas über [Fysik|Physik]. Mein Freund baut eine [Maschiene|Maschine]. Die ganze Klasse macht begeistert [Notitzen|Notizen]." },
+        { id: "fw-s-03", typ: "F", text: "Nach dem Sturm gab es eine große [Katastrofe|Katastrophe]. Alle halfen mit viel [Energi|Energie]. Das Dorf war [entlich|endlich] wieder sicher." },
+        { id: "fw-s-04", typ: "F", text: "Die [Sekräterin|Sekretärin] ist heute früh im Büro. Sie schaltet den [Compjuter|Computer] ein. Sie sorgt für gute [Atmosfäre|Atmosphäre]." }
       ]
     }
   };
@@ -648,7 +891,7 @@ const EINZELCODES = [
         balken.appendChild(f); karte.appendChild(balken);
         karte.setAttribute("aria-label", u.titel + ", " + stand.geuebt + " von " + stand.gesamt + " Aufgaben geübt");
         karte.addEventListener("click", function () {
-          starteBereich({ id: u.id, titel: haupt.titel + ": " + u.titel, hilfe: u.hilfe }, hinweis, haupt);
+          starteBereich({ id: u.id, titel: haupt.titel + ": " + u.titel, hilfe: u.hilfe, anleitung: u.anleitung }, hinweis, haupt);
         });
       } else {
         const bald = document.createElement("span"); bald.className = "bald"; bald.textContent = "kommt bald";
@@ -658,85 +901,180 @@ const EINZELCODES = [
     });
     zeige("ansicht-unterthemen");
   }
+  /* Übungstypen: A Wörter anklicken, B Auswahl in der Lücke (Buchstaben/Wörter), C Komma setzen, D Zeichen wählen, F Fehlerwort antippen. */
+  const TYPEN = {
+    A: { einheit: "Text", anleitung: "Tippe alle Wörter an, die großgeschrieben werden müssen." },
+    B: { einheit: "Satz", anleitung: "Tippe bei jedem Wort den Buchstaben an, der passt." },
+    C: { einheit: "Text", anleitung: "Tippe dorthin, wo ein Komma stehen muss. Noch einmal tippen nimmt es wieder weg." },
+    D: { einheit: "Satz", anleitung: "Tippe bei jeder Lücke das passende Zeichen an." },
+    F: { einheit: "Text", anleitung: "In jedem Satz ist ein Wort falsch geschrieben. Tippe es an." },
+    W: { einheit: "Satz", anleitung: "Tippe bei jeder Lücke das Wort an, das passt." }
+  };
+  function typVon(a) { return a.typ || "A"; }
   function startAufgabe(aufgabe, index, anzahl) {
-    uebung.aufgabe = aufgabe; uebung.geprueft = false;
-    const typB = aufgabe.typ === "B";
-    uebung.woerter = typB ? zerlegeLuecken(aufgabe.text) : zerlege(aufgabe.text);
-    document.getElementById("uebung-text").className = typB ? "text luecken" : "text";
-    document.getElementById("uebung-aufgabe").textContent = typB ? "Tippe bei jedem Wort den Buchstaben an, der passt." : "Tippe alle Wörter an, die großgeschrieben werden müssen.";
+    uebung.aufgabe = aufgabe; uebung.geprueft = false; uebung.aktiv = 0;
+    const typ = typVon(aufgabe), info = TYPEN[typ];
+    const einheit = aufgabe.einheit || info.einheit;
+    if (typ === "B" || typ === "D" || typ === "W") uebung.woerter = zerlegeLuecken(aufgabe.text);
+    else if (typ === "C") uebung.woerter = zerlegeKomma(aufgabe.text);
+    else if (typ === "F") uebung.woerter = zerlegeFehler(aufgabe.text);
+    else uebung.woerter = zerlege(aufgabe.text);
+    document.getElementById("uebung-text").className = "text" + ((typ === "B" || typ === "D" || typ === "W") ? " luecken" : "") + ((typ === "D" || typ === "W") ? " zeichen-wahl" : "") + (typ === "C" ? " komma" : "");
+    document.getElementById("uebung-aufgabe").textContent = (typ !== "A" && uebung.bereich.anleitung) || info.anleitung;
     document.getElementById("uebung-hinweis").hidden = true;
     const hk = document.getElementById("uebung-hilfe-knopf"), ht = document.getElementById("uebung-hilfe");
     ht.hidden = true; hk.setAttribute("aria-expanded", "false"); hk.textContent = "Hilfe";
     ht.textContent = uebung.bereich.hilfe || "";
-    hk.hidden = !(typB && uebung.bereich.hilfe);
-    document.getElementById("uebung-weiter").textContent = typB ? "Nächster Satz" : "Nächster Text";
+    hk.hidden = !(typ !== "A" && uebung.bereich.hilfe);
+    document.getElementById("uebung-weiter").textContent = "Nächster " + einheit;
     document.getElementById("uebung-titel").textContent = uebung.bereich.titel;
     document.getElementById("uebung-stufe").textContent = stufe;
-    document.getElementById("uebung-nummer").textContent = (typB ? "Satz " : "Text ") + (index + 1) + " von " + anzahl;
+    document.getElementById("uebung-nummer").textContent = einheit + " " + (index + 1) + " von " + anzahl;
     document.getElementById("uebung-ergebnis").hidden = true;
     document.getElementById("uebung-nochmal").hidden = true;
     document.getElementById("uebung-weiter").hidden = true;
     document.getElementById("uebung-pruefen").hidden = false;
-    if (typB) zeichneLuecken(-1); else zeichneText(-1);
+    if (typ === "B" || typ === "D" || typ === "W") zeichneLuecken(-1);
+    else if (typ === "C") zeichneKomma(-1);
+    else if (typ === "F") zeichneFehler(-1);
+    else zeichneText(-1);
   }
-  /* Typ B: Satz mit Lücken. {V/F:V} = Auswahl V oder F, richtig ist V. */
+
+  /* Typ B und D: Lücken. {a/b=c} = Auswahl a oder b, richtig ist c. "-h" bedeutet "kein h". */
+  const ZEICHENNAMEN = { "„": "Anführungszeichen unten", "“": "Anführungszeichen oben", ":": "Doppelpunkt", ",": "Komma", ".": "Punkt", "!": "Ausrufezeichen", "?": "Fragezeichen" };
   function zerlegeLuecken(text) {
-    return text.split(" ").map(function (t) {
-      const m = /^(.*?)\{([^:}]+):([^}]+)\}(.*)$/.exec(t);
-      if (!m) return { text: t, luecke: null };
-      return { vor: m[1], nach: m[4], luecke: { optionen: m[2].split("/"), richtig: m[3], gewaehlt: null } };
+    const tokens = text.match(/(?:\{[^}]*\}|\S)+/g) || [];
+    return tokens.map(function (t) {
+      const teile = t.split(/(\{[^}]*\})/).filter(function (x) { return x !== ""; }).map(function (x) {
+        const m = /^\{([^=}]+)=([^}]+)\}$/.exec(x);
+        if (!m) return { text: x };
+        return { luecke: { optionen: m[1].split("/"), richtig: m[2], gewaehlt: null } };
+      });
+      return { teile: teile, hat: teile.some(function (p) { return p.luecke; }) };
     });
   }
-  function buchstabe(w, o) { return w.vor === "" ? o.toUpperCase() : o.toLowerCase(); }
+  function einsatz(o, davor) { return o.charAt(0) === "-" ? "" : (davor ? o.toLowerCase() : o); }
+  function optionText(o) { return o.charAt(0) === "-" ? "kein " + o.slice(1) : o; }
+  function alleLuecken() {
+    const r = [];
+    uebung.woerter.forEach(function (w) { w.teile.forEach(function (p) { if (p.luecke) r.push(p.luecke); }); });
+    return r;
+  }
   function zeichneLuecken(fokus) {
+    if (uebung.aufgabe.typ === "D" || uebung.aufgabe.typ === "W") { zeichneZeichen(typeof fokus === "number" ? fokus : -1); return; }
     const box = document.getElementById("uebung-text");
     box.innerHTML = "";
     let nr = 0, fokusKnopf = null;
-    uebung.woerter.forEach(function (w) {
-      if (!w.luecke) { const sw = document.createElement("span"); sw.className = "satzwort"; sw.textContent = w.text; box.appendChild(sw); box.appendChild(document.createTextNode(" ")); return; }
-      nr++;
-      const L = w.luecke;
+    uebung.woerter.forEach(function (w, wi) {
+      if (!w.hat) {
+        const sw = document.createElement("span"); sw.className = "satzwort";
+        sw.textContent = w.teile.map(function (p) { return p.text; }).join("");
+        box.appendChild(sw); box.appendChild(document.createTextNode(" ")); return;
+      }
       const wrap = document.createElement("span"); wrap.className = "luecken-wort";
       const t = document.createElement("span"); t.className = "lw-text";
-      const gewaehlt = L.gewaehlt;
-      let zeige = gewaehlt, zustand = "";
-      if (uebung.geprueft) {
-        if (gewaehlt === L.richtig) { t.classList.add("richtig"); zustand = "richtig"; }
-        else { t.classList.add("fehlt"); zeige = L.richtig; zustand = "so schreibt man es"; }
-      }
-      t.appendChild(document.createTextNode(w.vor));
-      if (zeige) { const e = document.createElement("span"); e.className = "eingesetzt"; e.textContent = buchstabe(w, zeige); t.appendChild(e); }
-      else { const e = document.createElement("span"); e.className = "leer"; e.textContent = "_"; t.appendChild(e); }
-      t.appendChild(document.createTextNode(w.nach));
-      if (zustand) t.setAttribute("aria-label", w.vor + buchstabe(w, zeige) + w.nach + ", " + zustand);
+      const alleRichtig = w.teile.every(function (p) { return !p.luecke || p.luecke.gewaehlt === p.luecke.richtig; });
+      if (uebung.geprueft) t.classList.add(alleRichtig ? "richtig" : "fehlt");
+      let davor = false, ganz = "";
+      w.teile.forEach(function (p) {
+        if (!p.luecke) { t.appendChild(document.createTextNode(p.text)); ganz += p.text; davor = true; return; }
+        const L = p.luecke;
+        const gezeigt = uebung.geprueft ? L.richtig : L.gewaehlt;
+        const e = document.createElement("span");
+        if (gezeigt !== null) { const tx = einsatz(gezeigt, davor); e.className = "eingesetzt"; e.textContent = tx; ganz += tx; }
+        else { e.className = "leer"; e.textContent = "_"; }
+        t.appendChild(e); davor = true;
+      });
+      if (uebung.geprueft) t.setAttribute("aria-label", ganz + ", " + (alleRichtig ? "richtig" : "so schreibt man es"));
       wrap.appendChild(t);
       if (!uebung.geprueft) {
-        const wahl = document.createElement("span"); wahl.className = "lw-wahl";
-        wahl.setAttribute("role", "group"); wahl.setAttribute("aria-label", "Lücke " + nr);
-        L.optionen.forEach(function (o) {
-          const b = document.createElement("button"); b.type = "button"; b.textContent = o.toUpperCase();
-          b.setAttribute("aria-pressed", gewaehlt === o ? "true" : "false");
-          b.setAttribute("aria-label", o.toUpperCase() + " einsetzen, Lücke " + nr);
-          b.addEventListener("click", function () {
-            L.gewaehlt = o; document.getElementById("uebung-hinweis").hidden = true;
-            zeichneLuecken(uebung.woerter.indexOf(w) * 10 + L.optionen.indexOf(o));
+        w.teile.forEach(function (p) {
+          if (!p.luecke) return;
+          nr++;
+          const L = p.luecke, gnr = nr;
+          const wahl = document.createElement("span"); wahl.className = "lw-wahl";
+          wahl.setAttribute("role", "group"); wahl.setAttribute("aria-label", "Lücke " + gnr);
+          L.optionen.forEach(function (o, oi) {
+            const b = document.createElement("button"); b.type = "button"; b.textContent = optionText(o);
+            b.setAttribute("aria-pressed", L.gewaehlt === o ? "true" : "false");
+            b.setAttribute("aria-label", (ZEICHENNAMEN[o] || optionText(o)) + " einsetzen, Lücke " + gnr);
+            const key = wi + ":" + gnr + ":" + oi;
+            b.addEventListener("click", function () {
+              L.gewaehlt = o; document.getElementById("uebung-hinweis").hidden = true;
+              zeichneLuecken(key);
+            });
+            if (fokus === key) fokusKnopf = b;
+            wahl.appendChild(b);
           });
-          if (fokus === uebung.woerter.indexOf(w) * 10 + L.optionen.indexOf(o)) fokusKnopf = b;
-          wahl.appendChild(b);
+          wrap.appendChild(wahl);
         });
-        wrap.appendChild(wahl);
       }
       box.appendChild(wrap);
       box.appendChild(document.createTextNode(" "));
     });
     if (fokusKnopf) fokusKnopf.focus({ preventScroll: true });
   }
+  /* Typ D: Die Lücken stehen im fließenden Text, die Auswahl erscheint darunter für die gerade gewählte Lücke. */
+  function zeichneZeichen(fokus) {
+    const box = document.getElementById("uebung-text");
+    box.innerHTML = "";
+    const alle = alleLuecken();
+    if (uebung.aktiv >= alle.length || uebung.aktiv < 0) uebung.aktiv = 0;
+    let nr = -1, fokusKnopf = null;
+    uebung.woerter.forEach(function (w) {
+      const einheit = document.createElement("span"); einheit.className = "einheit-k";
+      w.teile.forEach(function (p) {
+        if (!p.luecke) { const sw = document.createElement("span"); sw.className = "satzwort"; sw.textContent = p.text; einheit.appendChild(sw); return; }
+        nr++;
+        const mein = nr, L = p.luecke;
+        const b = document.createElement("button"); b.type = "button"; b.className = "luecke-feld";
+        const gezeigt = uebung.geprueft ? L.richtig : L.gewaehlt;
+        b.textContent = gezeigt !== null ? gezeigt : "_";
+        if (uebung.geprueft) {
+          b.disabled = true; b.classList.add(L.gewaehlt === L.richtig ? "richtig" : "fehlt");
+          b.setAttribute("aria-label", "Lücke " + (mein + 1) + ": " + (ZEICHENNAMEN[L.richtig] || L.richtig) + ", " + (L.gewaehlt === L.richtig ? "richtig" : "so gehört es hierhin"));
+        } else {
+          if (L.gewaehlt !== null) b.classList.add("gefuellt");
+          if (mein === uebung.aktiv) b.classList.add("aktiv");
+          b.setAttribute("aria-pressed", mein === uebung.aktiv ? "true" : "false");
+          b.setAttribute("aria-label", "Lücke " + (mein + 1) + (L.gewaehlt !== null ? ": " + (ZEICHENNAMEN[L.gewaehlt] || L.gewaehlt) : ", noch leer"));
+          b.addEventListener("click", function () { uebung.aktiv = mein; zeichneZeichen(mein); });
+          if (fokus === mein) fokusKnopf = b;
+        }
+        einheit.appendChild(b);
+      });
+      box.appendChild(einheit); box.appendChild(document.createTextNode(" "));
+    });
+    if (!uebung.geprueft) {
+      const L = alle[uebung.aktiv];
+      const panel = document.createElement("div"); panel.className = "wahl-panel";
+      const titel = document.createElement("p"); titel.className = "panel-titel";
+      titel.textContent = "Lücke " + (uebung.aktiv + 1) + " von " + alle.length + (uebung.aufgabe.typ === "W" ? ": Welches Wort passt hierhin?" : ": Welches Zeichen gehört hierhin?");
+      panel.appendChild(titel);
+      const knoepfe = document.createElement("div"); knoepfe.className = "panel-knoepfe";
+      knoepfe.setAttribute("role", "group"); knoepfe.setAttribute("aria-label", "Auswahl für Lücke " + (uebung.aktiv + 1));
+      L.optionen.forEach(function (o) {
+        const k = document.createElement("button"); k.type = "button"; k.textContent = o;
+        k.setAttribute("aria-pressed", L.gewaehlt === o ? "true" : "false");
+        k.setAttribute("aria-label", (ZEICHENNAMEN[o] || o) + " einsetzen");
+        k.addEventListener("click", function () {
+          L.gewaehlt = o; document.getElementById("uebung-hinweis").hidden = true;
+          let naechste = uebung.aktiv;
+          for (let i = 1; i <= alle.length; i++) { const j = (uebung.aktiv + i) % alle.length; if (alle[j].gewaehlt === null) { naechste = j; break; } }
+          uebung.aktiv = naechste; zeichneZeichen(naechste);
+        });
+        knoepfe.appendChild(k);
+      });
+      panel.appendChild(knoepfe); box.appendChild(panel);
+    }
+    if (fokusKnopf) fokusKnopf.focus({ preventScroll: true });
+  }
   function pruefeLuecken() {
-    const luecken = uebung.woerter.filter(function (w) { return w.luecke; }).map(function (w) { return w.luecke; });
+    const luecken = alleLuecken();
     const leer = luecken.filter(function (L) { return !L.gewaehlt; }).length;
     const hinweis = document.getElementById("uebung-hinweis");
     if (leer > 0) {
-      hinweis.textContent = (leer === 1 ? "Eine Lücke ist noch leer." : leer + " Lücken sind noch leer.") + " Tippe bei jedem Wort einen Buchstaben an, dann kannst du prüfen.";
+      hinweis.textContent = (leer === 1 ? "Eine Lücke ist noch leer." : leer + " Lücken sind noch leer.") + " Tippe bei jeder Lücke etwas an, dann kannst du prüfen.";
       hinweis.hidden = false;
       return;
     }
@@ -748,6 +1086,134 @@ const EINZELCODES = [
       : "Du hast " + richtig + " von " + luecken.length + " Lücken richtig. Die orangen Wörter schreibt man so.";
     zeigeErgebnis(meldung, Math.round(richtig / luecken.length * 100),
       [["background:var(--accent)", "richtig"], ["background:var(--amber-soft);border-bottom:3px solid var(--amber)", "so schreibt man das Wort"]]);
+  }
+
+  /* Typ C: Komma per Tipp setzen. Die Kommas stehen im Aufgabentext und sind die Lösung. */
+  function zerlegeKomma(text) {
+    return (text.match(/\S+/g) || []).map(function (t) {
+      const m = /^(.*?)([,.!?]*)$/.exec(t);
+      const z = m[2];
+      const ende = /[.!?]/.test(z);
+      return { wort: m[1], nach: ende ? z : "", ende: ende, noetig: z.indexOf(",") >= 0, gesetzt: false };
+    });
+  }
+  function zeichneKomma(fokus) {
+    const box = document.getElementById("uebung-text");
+    box.innerHTML = "";
+    uebung.woerter.forEach(function (w, n) {
+      const einheit = document.createElement("span"); einheit.className = "einheit-k";
+      const wort = document.createElement("span"); wort.className = "satzwort"; wort.textContent = w.wort + w.nach;
+      einheit.appendChild(wort);
+      if (!w.ende) {
+        const b = document.createElement("button"); b.type = "button"; b.className = "komma-stelle";
+        let zustand = "";
+        if (uebung.geprueft) {
+          b.disabled = true;
+          if (w.noetig && w.gesetzt) { b.classList.add("richtig"); zustand = "Komma richtig gesetzt"; }
+          else if (w.noetig) { b.classList.add("fehlt"); zustand = "hier fehlte ein Komma"; }
+          else if (w.gesetzt) { b.classList.add("bleibt"); zustand = "hier braucht es kein Komma"; }
+        } else if (w.gesetzt) b.classList.add("gewaehlt");
+        b.textContent = (w.gesetzt || (uebung.geprueft && w.noetig)) ? "," : "";
+        b.setAttribute("aria-pressed", w.gesetzt ? "true" : "false");
+        b.setAttribute("aria-label", "Nach „" + w.wort + "“: " + (zustand || (w.gesetzt ? "Komma gesetzt" : "kein Komma")));
+        b.addEventListener("click", function () {
+          w.gesetzt = !w.gesetzt; document.getElementById("uebung-hinweis").hidden = true; zeichneKomma(n);
+        });
+        einheit.appendChild(b);
+      }
+      box.appendChild(einheit); box.appendChild(document.createTextNode(" "));
+    });
+    if (fokus >= 0) { const stellen = box.querySelectorAll(".komma-stelle"); let k = -1; uebung.woerter.forEach(function (w, n) { if (!w.ende) { k++; if (n === fokus && stellen[k]) stellen[k].focus({ preventScroll: true }); } }); }
+  }
+  function pruefeKomma() {
+    uebung.geprueft = true;
+    zeichneKomma(-1);
+    const W = uebung.woerter;
+    const noetig = W.filter(function (w) { return w.noetig; }).length;
+    const richtig = W.filter(function (w) { return w.noetig && w.gesetzt; }).length;
+    const zuviel = W.filter(function (w) { return !w.ende && !w.noetig && w.gesetzt; });
+    let meldung;
+    if (richtig === noetig && zuviel.length === 0) meldung = "Alles richtig.";
+    else {
+      meldung = "Du hast " + richtig + " von " + noetig + " Kommas gesetzt.";
+      if (richtig < noetig) meldung += " Die orangen Stellen fehlten noch.";
+      if (zuviel.length > 0) {
+        meldung += " " + (zuviel.length === 1 ? "Ein Komma, das du gesetzt hast, braucht es hier nicht." : zuviel.length + " Kommas, die du gesetzt hast, braucht es hier nicht.");
+        const vorUnd = zuviel.some(function (w) { const i = W.indexOf(w); return W[i + 1] && /^(und|oder)$/i.test(W[i + 1].wort); });
+        if (vorUnd) meldung += " Vor „und“ und „oder“ steht in einer Aufzählung kein Komma.";
+      }
+    }
+    zeigeErgebnis(meldung, Math.round(Math.max(0, richtig - zuviel.length) / noetig * 100),
+      [["background:var(--accent)", "Komma richtig gesetzt"], ["background:var(--amber-soft);border-bottom:3px solid var(--amber)", "hier fehlte ein Komma"], ["border-radius:0;height:14px;border-bottom:3px dashed var(--ink-soft)", "hier braucht es kein Komma"]]);
+  }
+
+  /* Typ F: Fehlerwort. [falsch|richtig] im Text, pro Satz genau ein Fehler. */
+  function zerlegeFehler(text) {
+    let satz = 0;
+    return (text.match(/\S+/g) || []).map(function (t) {
+      let w;
+      const m = /^(.*?)\[([^|\]]+)\|([^\]]+)\](.*)$/.exec(t);
+      if (m) w = { wort: m[1] + m[2], richtig: m[1] + m[3], zeichen: m[4], fehler: true };
+      else { const q = /^(.*?)([.,!?;:“„]*)$/.exec(t); w = { wort: q[1], richtig: q[1], zeichen: q[2], fehler: false }; }
+      w.satz = satz; w.gewaehlt = false;
+      if (/[.!?]/.test(w.zeichen)) satz++;
+      return w;
+    });
+  }
+  function zeichneFehler(fokus) {
+    const box = document.getElementById("uebung-text");
+    box.innerHTML = "";
+    uebung.woerter.forEach(function (w, n) {
+      const b = document.createElement("button");
+      b.type = "button"; b.className = "wort"; b.disabled = uebung.geprueft;
+      let angezeigt = w.wort, zustand = "";
+      if (uebung.geprueft) {
+        if (w.fehler && w.gewaehlt) { b.classList.add("richtig"); angezeigt = w.richtig; zustand = "Fehler gefunden, so schreibt man es"; }
+        else if (w.fehler) { b.classList.add("fehlt"); angezeigt = w.richtig; zustand = "hier war der Fehler, so schreibt man es"; }
+        else if (w.gewaehlt) { b.classList.add("bleibt"); zustand = "war schon richtig geschrieben"; }
+      } else if (w.gewaehlt) b.classList.add("gewaehlt");
+      b.textContent = angezeigt;
+      b.setAttribute("aria-pressed", w.gewaehlt ? "true" : "false");
+      if (zustand) b.setAttribute("aria-label", angezeigt + ", " + zustand);
+      b.addEventListener("click", function () {
+        const neu = !w.gewaehlt;
+        uebung.woerter.forEach(function (x) { if (x.satz === w.satz) x.gewaehlt = false; });
+        w.gewaehlt = neu;
+        document.getElementById("uebung-hinweis").hidden = true;
+        zeichneFehler(n);
+      });
+      const einheit = document.createElement("span"); einheit.className = "einheit";
+      einheit.appendChild(b);
+      if (w.zeichen) { const z = document.createElement("span"); z.className = "zeichen"; z.textContent = w.zeichen; einheit.appendChild(z); }
+      box.appendChild(einheit); box.appendChild(document.createTextNode(" "));
+    });
+    if (fokus >= 0) { const nb = box.querySelectorAll(".wort")[fokus]; if (nb) nb.focus({ preventScroll: true }); }
+  }
+  function pruefeFehler() {
+    const W = uebung.woerter;
+    const saetze = {};
+    W.forEach(function (w) { if (!saetze[w.satz]) saetze[w.satz] = { gewaehlt: false }; if (w.gewaehlt) saetze[w.satz].gewaehlt = true; });
+    const ohne = Object.keys(saetze).filter(function (k) { return !saetze[k].gewaehlt; }).length;
+    const hinweis = document.getElementById("uebung-hinweis");
+    if (ohne > 0) {
+      hinweis.textContent = (ohne === 1 ? "In einem Satz hast du noch kein Wort angetippt." : "In " + ohne + " Sätzen hast du noch kein Wort angetippt.") + " Jeder Satz hat genau einen Fehler.";
+      hinweis.hidden = false;
+      return;
+    }
+    hinweis.hidden = true;
+    uebung.geprueft = true;
+    zeichneFehler(-1);
+    const gesamt = W.filter(function (w) { return w.fehler; }).length;
+    const gefunden = W.filter(function (w) { return w.fehler && w.gewaehlt; }).length;
+    const falsch = W.filter(function (w) { return !w.fehler && w.gewaehlt; }).length;
+    let meldung;
+    if (gefunden === gesamt) meldung = "Alles richtig.";
+    else {
+      meldung = "Du hast " + gefunden + " von " + gesamt + " Fehlern gefunden. Bei den orangen Wörtern steht jetzt die richtige Schreibweise.";
+      if (falsch > 0) meldung += " " + (falsch === 1 ? "Ein Wort, das du angetippt hast, war schon richtig." : falsch + " Wörter, die du angetippt hast, waren schon richtig.");
+    }
+    zeigeErgebnis(meldung, Math.round(gefunden / gesamt * 100),
+      [["background:var(--accent)", "Fehler gefunden"], ["background:var(--amber-soft);border-bottom:3px solid var(--amber)", "hier war der Fehler"], ["border-radius:0;height:14px;border-bottom:3px dashed var(--ink-soft)", "war schon richtig"]]);
   }
   function zeigeErgebnis(meldung, prozent, legende) {
     merkeErgebnis(prozent);
@@ -788,7 +1254,10 @@ const EINZELCODES = [
     if (fokus >= 0) { const nb = box.querySelectorAll(".wort")[fokus]; if (nb) nb.focus({ preventScroll: true }); }
   }
   function pruefe() {
-    if (uebung.aufgabe.typ === "B") { pruefeLuecken(); return; }
+    const typ = typVon(uebung.aufgabe);
+    if (typ === "B" || typ === "D" || typ === "W") { pruefeLuecken(); return; }
+    if (typ === "C") { pruefeKomma(); return; }
+    if (typ === "F") { pruefeFehler(); return; }
     uebung.geprueft = true;
     zeichneText(-1);
     const noetig = uebung.woerter.filter(function (w) { return w.gross; }).length;
