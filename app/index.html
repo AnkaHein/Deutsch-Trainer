@@ -116,6 +116,25 @@
   .platzhalter { color: var(--ink-soft); margin-top: 24px; }
   .wer-liste { list-style: none; margin: 0 0 12px; padding: 0; display: grid; gap: 10px; max-width: 420px; }
   .wer-liste .btn { width: 100%; text-align: left; }
+  /* Übungsansicht */
+  .uebung-kopf { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; margin-bottom: 6px; }
+  .uebung-kopf h2 { margin: 0; }
+  .pille { background: var(--surface-2); color: var(--ink-soft); border-radius: 99px; padding: 2px 14px; font-size: .9rem; }
+  .aufgabe { margin: 0 0 14px; font-weight: 600; }
+  .text { font-size: clamp(1.2rem, 4vw, 1.5rem); line-height: 1.6; background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 16px clamp(12px, 3vw, 26px); }
+  .wort { display: inline-block; vertical-align: baseline; min-height: 48px; padding: 0 8px; margin: 2px 1px; font: inherit; line-height: 44px; color: var(--ink); background: transparent; border: 0; border-bottom: 3px solid transparent; border-radius: 10px; cursor: pointer; }
+  .wort:hover:not(:disabled) { background: var(--surface-2); }
+  .wort.gewaehlt { background: var(--accent-soft); border-bottom-color: var(--accent); }
+  .wort.richtig { background: var(--accent); color: var(--accent-ink); border-bottom-color: transparent; }
+  .wort.fehlt { background: var(--amber-soft); border-bottom-color: var(--amber); }
+  .wort.bleibt { background: transparent; color: var(--ink-soft); border-bottom: 3px dashed var(--ink-soft); }
+  .wort:disabled { cursor: default; }
+  .zeichen { display: inline-block; vertical-align: baseline; line-height: 44px; margin-right: 6px; }
+  .ergebnis { margin-top: 16px; }
+  .ergebnis strong { font-size: 1.15rem; display: block; margin-bottom: 8px; }
+  .legende { display: flex; flex-wrap: wrap; gap: 8px 20px; margin: 10px 0 0; padding: 0; list-style: none; font-size: .9rem; color: var(--ink-soft); }
+  .legende span { display: inline-block; width: 18px; height: 18px; border-radius: 5px; vertical-align: -3px; margin-right: 8px; }
+
   /* Startansicht: Stufenwahl und Kacheln */
   .stufe { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 20px; margin-top: 22px; }
   .stufe h2 { margin: 0; font-size: 1.15rem; }
@@ -124,6 +143,8 @@
   .seg button:hover { background: var(--accent-soft); }
   .seg button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
   .kacheln { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr)); gap: 16px; margin: 20px 0 0; padding: 0; list-style: none; }
+  button.kachel { font: inherit; color: inherit; text-align: left; width: 100%; cursor: pointer; }
+  button.kachel:hover { border-color: var(--accent); background: var(--surface-2); }
   .kachel { display: grid; grid-template-columns: 88px minmax(0, 1fr); gap: 4px 14px; align-items: center; background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 14px; height: 100%; }
   .kachel .bild { grid-row: 1 / span 4; width: 88px; height: 88px; border-radius: 50%; background: #fff; border: 1px solid var(--line); display: grid; place-items: center; overflow: hidden; }
   .kachel .bild img { width: 76px; height: 76px; object-fit: contain; display: block; }
@@ -209,7 +230,32 @@
         <button type="button" data-stufe="schwer" aria-pressed="false">schwer</button>
       </div>
     </div>
+    <p class="hinweis" id="stufen-hinweis" role="status" hidden></p>
     <ul class="kacheln" id="kacheln"></ul>
+  </section>
+
+  <!-- Übung -->
+  <section id="ansicht-uebung" hidden>
+    <div class="uebung-kopf">
+      <button class="btn ghost small" id="uebung-zurueck" type="button">Zurück</button>
+      <h2 tabindex="-1" id="uebung-titel">Groß- und Kleinschreibung</h2>
+      <span class="pille" id="uebung-stufe"></span>
+      <span class="pille" id="uebung-nummer"></span>
+    </div>
+    <p class="aufgabe">Tippe alle Wörter an, die großgeschrieben werden müssen.</p>
+    <div class="text" id="uebung-text"></div>
+    <div class="zeile">
+      <button class="btn" id="uebung-pruefen" type="button">Prüfen</button>
+      <button class="btn ghost" id="uebung-nochmal" type="button" hidden>Nochmal versuchen</button>
+    </div>
+    <div class="karte ergebnis" id="uebung-ergebnis" role="status" hidden>
+      <strong id="uebung-meldung"></strong>
+      <ul class="legende">
+        <li><span style="background:var(--accent)"></span>richtig großgeschrieben</li>
+        <li><span style="background:var(--amber-soft);border-bottom:3px solid var(--amber)"></span>hier fehlte noch ein Großbuchstabe</li>
+        <li><span style="border-bottom:3px dashed var(--ink-soft)"></span>bleibt klein</li>
+      </ul>
+    </div>
   </section>
 
   <!-- Einstellungen -->
@@ -268,7 +314,7 @@
 <footer>Evangelisches Schulzentrum Bad Düben &middot; <span style="white-space:nowrap">Version <span id="version"></span></span></footer>
 
 <script>
-const APP_VERSION = "1.4.0";
+const APP_VERSION = "1.5.0";
 document.getElementById("version").textContent = APP_VERSION;
 
 (function () {
@@ -365,7 +411,7 @@ const EINZELCODES = [
 
   /* Bereiche (Kacheln): noch nicht gebaute Bereiche zeigen "kommt bald". */
   const BEREICHE = [
-    { id: "gross-klein", titel: "Groß- und Kleinschreibung", sub: "Wörter im Text anklicken" },
+    { id: "gross-klein", titel: "Groß- und Kleinschreibung", sub: "Wörter im Text anklicken", aktiv: true },
     { id: "komma", titel: "Kommasetzung", sub: "Kommas an die richtige Stelle" },
     { id: "woertliche-rede", titel: "Wörtliche Rede", sub: "Zeichen vor und nach der Rede" },
     { id: "satzschluss", titel: "Satzschlusszeichen", sub: "Punkt, Fragezeichen, Ausrufezeichen" },
@@ -396,8 +442,9 @@ const EINZELCODES = [
     liste.innerHTML = "";
     BEREICHE.forEach(function (b) {
       const li = document.createElement("li");
-      li.className = "kachel";
-      li.setAttribute("aria-label", b.titel + ", kommt bald");
+      const karte = document.createElement(b.aktiv ? "button" : "div");
+      karte.className = "kachel";
+      if (b.aktiv) karte.type = "button";
       const bild = document.createElement("span"); bild.className = "bild";
       const img = document.createElement("img"); img.alt = ""; img.width = 76; img.height = 76;
       img.setAttribute("data-asset", "symbol-" + b.id);
@@ -406,12 +453,114 @@ const EINZELCODES = [
       const sub = document.createElement("span"); sub.className = "sub"; sub.textContent = b.sub;
       const balken = document.createElement("span"); balken.className = "balken"; balken.setAttribute("aria-hidden", "true");
       balken.appendChild(document.createElement("i"));
-      const bald = document.createElement("span"); bald.className = "bald"; bald.textContent = "kommt bald";
-      li.appendChild(bild); li.appendChild(h); li.appendChild(sub); li.appendChild(balken); li.appendChild(bald);
+      karte.appendChild(bild); karte.appendChild(h); karte.appendChild(sub); karte.appendChild(balken);
+      if (b.aktiv) {
+        karte.addEventListener("click", function () { oeffneBereich(b); });
+      } else {
+        const bald = document.createElement("span"); bald.className = "bald"; bald.textContent = "kommt bald";
+        karte.appendChild(bald);
+      }
+      li.appendChild(karte);
       liste.appendChild(li);
     });
     if (typeof ladeBilder === "function") ladeBilder(liste);
   }
+
+  /* Übungen. Jede Aufgabe hat eine feste, dauerhafte ID. "^" steht vor Wörtern, die großgeschrieben werden müssen. */
+  const AUFGABEN = {
+    "gross-klein": {
+      leicht: [
+        { id: "gk-l-01", text: "^am ^samstag besuchen ^lena und ihr ^bruder den ^zoo. ^sie sehen ^elefanten, ^affen und einen großen ^tiger. ^danach kaufen sie ein ^eis." }
+      ],
+      mittel: [],
+      schwer: []
+    }
+  };
+  const uebung = { bereich: null, aufgabe: null, woerter: [], geprueft: false };
+
+  function zerlege(text) {
+    return text.split(" ").filter(Boolean).map(function (roh) {
+      const gross = roh.charAt(0) === "^";
+      const ohne = gross ? roh.slice(1) : roh;
+      const m = ohne.match(/^(.*?)([.,!?:;]*)$/);
+      return { wort: m[1], zeichen: m[2], gross: gross, gewaehlt: false };
+    });
+  }
+  function grossGeschrieben(w) { return w.charAt(0).toUpperCase() + w.slice(1); }
+
+  function oeffneBereich(bereich) {
+    const hinweis = document.getElementById("stufen-hinweis");
+    const aufgaben = (AUFGABEN[bereich.id] && AUFGABEN[bereich.id][stufe]) || [];
+    if (aufgaben.length === 0) {
+      hinweis.textContent = "Für „" + stufe + "“ gibt es hier noch keine Aufgaben. Probier „leicht“.";
+      hinweis.hidden = false;
+      return;
+    }
+    hinweis.hidden = true;
+    uebung.bereich = bereich;
+    startAufgabe(aufgaben[0], 0, aufgaben.length);
+    zeige("ansicht-uebung");
+  }
+  function startAufgabe(aufgabe, index, anzahl) {
+    uebung.aufgabe = aufgabe; uebung.geprueft = false;
+    uebung.woerter = zerlege(aufgabe.text);
+    document.getElementById("uebung-titel").textContent = uebung.bereich.titel;
+    document.getElementById("uebung-stufe").textContent = stufe;
+    document.getElementById("uebung-nummer").textContent = "Text " + (index + 1) + " von " + anzahl;
+    document.getElementById("uebung-ergebnis").hidden = true;
+    document.getElementById("uebung-nochmal").hidden = true;
+    document.getElementById("uebung-pruefen").hidden = false;
+    zeichneText(-1);
+  }
+  function zeichneText(fokus) {
+    const box = document.getElementById("uebung-text");
+    box.innerHTML = "";
+    uebung.woerter.forEach(function (w, n) {
+      const b = document.createElement("button");
+      b.type = "button"; b.className = "wort"; b.disabled = uebung.geprueft;
+      let angezeigt = w.wort, zustand = "";
+      if (uebung.geprueft) {
+        if (w.gross && w.gewaehlt) { b.classList.add("richtig"); angezeigt = grossGeschrieben(w.wort); zustand = "richtig großgeschrieben"; }
+        else if (w.gross) { b.classList.add("fehlt"); angezeigt = grossGeschrieben(w.wort); zustand = "hier fehlte noch ein Großbuchstabe"; }
+        else if (w.gewaehlt) { b.classList.add("bleibt"); zustand = "bleibt klein"; }
+      } else if (w.gewaehlt) { b.classList.add("gewaehlt"); angezeigt = grossGeschrieben(w.wort); }
+      b.textContent = angezeigt;
+      b.setAttribute("aria-pressed", w.gewaehlt ? "true" : "false");
+      if (zustand) b.setAttribute("aria-label", angezeigt + ", " + zustand);
+      b.addEventListener("click", function () { w.gewaehlt = !w.gewaehlt; zeichneText(n); });
+      box.appendChild(b);
+      if (w.zeichen) { const z = document.createElement("span"); z.className = "zeichen"; z.textContent = w.zeichen; box.appendChild(z); }
+      box.appendChild(document.createTextNode(" "));
+    });
+    if (fokus >= 0) { const nb = box.querySelectorAll(".wort")[fokus]; if (nb) nb.focus({ preventScroll: true }); }
+  }
+  function pruefe() {
+    uebung.geprueft = true;
+    zeichneText(-1);
+    const noetig = uebung.woerter.filter(function (w) { return w.gross; }).length;
+    const gefunden = uebung.woerter.filter(function (w) { return w.gross && w.gewaehlt; }).length;
+    const zuviel = uebung.woerter.filter(function (w) { return !w.gross && w.gewaehlt; }).length;
+    let meldung;
+    if (gefunden === noetig && zuviel === 0) {
+      meldung = "Alles richtig.";
+    } else {
+      meldung = "Du hast " + gefunden + " von " + noetig + " Großbuchstaben gefunden.";
+      if (zuviel > 0) meldung += " " + (zuviel === 1 ? "Ein Wort, das du angetippt hast, bleibt" : zuviel + " Wörter, die du angetippt hast, bleiben") + " klein.";
+      if (gefunden < noetig) meldung += " Die orangen Wörter fehlten noch.";
+    }
+    document.getElementById("uebung-meldung").textContent = meldung;
+    document.getElementById("uebung-ergebnis").hidden = false;
+    document.getElementById("uebung-pruefen").hidden = true;
+    document.getElementById("uebung-nochmal").hidden = false;
+  }
+  document.getElementById("uebung-pruefen").addEventListener("click", pruefe);
+  document.getElementById("uebung-nochmal").addEventListener("click", function () {
+    const liste = AUFGABEN[uebung.bereich.id][stufe];
+    startAufgabe(uebung.aufgabe, liste.indexOf(uebung.aufgabe), liste.length);
+    window.scrollTo(0, 0);
+  });
+  document.getElementById("uebung-zurueck").addEventListener("click", function () { zeigeStart(); });
+
   document.getElementById("stufen-schalter").addEventListener("click", function (e) {
     const b = e.target.closest("button"); if (!b) return;
     const neu = b.getAttribute("data-stufe");
@@ -422,10 +571,11 @@ const EINZELCODES = [
       if (p) { p.stufe = stufe; speichere(); }
     }
     zeichneStufenschalter();
+    document.getElementById("stufen-hinweis").hidden = true;
   });
 
   /* Ansichten */
-  const ANSICHTEN = ["ansicht-zugang", "ansicht-wer", "ansicht-start", "ansicht-einstellungen", "ansicht-kennwort", "ansicht-lehrkraft"];
+  const ANSICHTEN = ["ansicht-zugang", "ansicht-wer", "ansicht-start", "ansicht-uebung", "ansicht-einstellungen", "ansicht-kennwort", "ansicht-lehrkraft"];
   function zeige(id) {
     ANSICHTEN.forEach(function (a) { document.getElementById(a).hidden = (a !== id); });
     window.scrollTo(0, 0);
@@ -468,6 +618,7 @@ const EINZELCODES = [
     }
     ladeStufe();
     zeichneStufenschalter();
+    document.getElementById("stufen-hinweis").hidden = true;
     zeichneKacheln();
     zeige("ansicht-start");
   }
