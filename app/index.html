@@ -131,6 +131,22 @@
   .wort:disabled { cursor: default; }
   .einheit { white-space: nowrap; }
   .zeichen { display: inline-block; vertical-align: baseline; line-height: 44px; margin-right: 6px; }
+  .text.luecken { line-height: 1.35; padding-top: 10px; padding-bottom: 10px; }
+  .satzwort { display: inline-block; vertical-align: top; line-height: 40px; min-height: 40px; margin: 6px 0 12px; }
+  .luecken-wort { display: inline-flex; flex-direction: column; align-items: center; vertical-align: top; gap: 6px; margin: 6px 6px 12px; white-space: nowrap; }
+  .lw-text { display: inline-block; min-height: 40px; line-height: 40px; padding: 0 8px; border-bottom: 3px solid transparent; border-radius: 10px; }
+  .lw-text .leer { color: var(--ink-soft); letter-spacing: .08em; }
+  .lw-text .eingesetzt { color: var(--accent); font-weight: 700; }
+  .lw-text.richtig { background: var(--accent); color: var(--accent-ink); }
+  .lw-text.richtig .eingesetzt { color: inherit; }
+  .lw-text.fehlt { background: var(--amber-soft); border-bottom-color: var(--amber); }
+  .lw-text.fehlt .eingesetzt { color: inherit; }
+  .lw-wahl { display: flex; gap: 8px; }
+  .lw-wahl button { min-width: 52px; min-height: 48px; padding: 0 10px; font: inherit; font-size: 1.05rem; font-weight: 700; color: var(--ink); background: var(--surface); border: 2px solid var(--line); border-radius: 12px; cursor: pointer; }
+  .lw-wahl button:hover { background: var(--surface-2); }
+  .lw-wahl button[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); }
+  .kachel.einfach { grid-template-columns: minmax(0, 1fr); }
+  .kachel.einfach .bald { grid-column: 1; }
   .ergebnis { margin-top: 16px; }
   .ergebnis strong { font-size: 1.15rem; display: block; margin-bottom: 8px; }
   .legende { display: flex; flex-wrap: wrap; gap: 8px 20px; margin: 10px 0 0; padding: 0; list-style: none; font-size: .9rem; color: var(--ink-soft); }
@@ -235,6 +251,18 @@
     <ul class="kacheln" id="kacheln"></ul>
   </section>
 
+  <!-- Unterthemen -->
+  <section id="ansicht-unterthemen" hidden>
+    <div class="uebung-kopf">
+      <button class="btn ghost small" id="unter-zurueck" type="button">Zurück</button>
+      <h2 tabindex="-1" id="unter-titel"></h2>
+      <span class="pille" id="unter-stufe"></span>
+    </div>
+    <p class="aufgabe">Womit möchtest du üben?</p>
+    <p class="hinweis" id="unter-hinweis" role="status" hidden></p>
+    <ul class="kacheln" id="unter-liste"></ul>
+  </section>
+
   <!-- Übung -->
   <section id="ansicht-uebung" hidden>
     <div class="uebung-kopf">
@@ -243,8 +271,9 @@
       <span class="pille" id="uebung-stufe"></span>
       <span class="pille" id="uebung-nummer"></span>
     </div>
-    <p class="aufgabe">Tippe alle Wörter an, die großgeschrieben werden müssen.</p>
+    <p class="aufgabe" id="uebung-aufgabe">Tippe alle Wörter an, die großgeschrieben werden müssen.</p>
     <div class="text" id="uebung-text"></div>
+    <p class="hinweis" id="uebung-hinweis" role="status" hidden></p>
     <div class="zeile">
       <button class="btn" id="uebung-pruefen" type="button">Prüfen</button>
       <button class="btn ghost" id="uebung-nochmal" type="button" hidden>Nochmal versuchen</button>
@@ -252,11 +281,7 @@
     </div>
     <div class="karte ergebnis" id="uebung-ergebnis" role="status" hidden>
       <strong id="uebung-meldung"></strong>
-      <ul class="legende">
-        <li><span style="background:var(--accent)"></span>richtig großgeschrieben</li>
-        <li><span style="background:var(--amber-soft);border-bottom:3px solid var(--amber)"></span>hier fehlte noch ein Großbuchstabe</li>
-        <li><span style="border-radius:0;height:14px;border-bottom:3px dashed var(--ink-soft)"></span>bleibt klein</li>
-      </ul>
+      <ul class="legende" id="uebung-legende"></ul>
     </div>
   </section>
 
@@ -316,7 +341,7 @@
 <footer>Evangelisches Schulzentrum Bad Düben &middot; <span style="white-space:nowrap">Version <span id="version"></span></span></footer>
 
 <script>
-const APP_VERSION = "1.7.0";
+const APP_VERSION = "1.8.0";
 document.getElementById("version").textContent = APP_VERSION;
 
 (function () {
@@ -417,7 +442,11 @@ const EINZELCODES = [
     { id: "komma", titel: "Kommasetzung", sub: "Kommas an die richtige Stelle" },
     { id: "woertliche-rede", titel: "Wörtliche Rede", sub: "Zeichen vor und nach der Rede" },
     { id: "satzschluss", titel: "Satzschlusszeichen", sub: "Punkt, Fragezeichen, Ausrufezeichen" },
-    { id: "laute", titel: "Laute und Buchstaben", sub: "V/F, Ä/E, D/T und mehr" },
+    { id: "laute", titel: "Laute und Buchstaben", sub: "V/F, Ä/E, D/T und mehr", aktiv: true, unterthemen: [
+      { id: "laute-vf", titel: "V oder F", sub: "Wörter mit V und F", aktiv: true },
+      { id: "laute-ae", titel: "Ä oder E", sub: "Wörter mit Ä und E" },
+      { id: "laute-dt", titel: "D oder T", sub: "Wörter mit D und T" }
+    ] },
     { id: "dehnung", titel: "Dehnung und Schärfung", sub: "h, ie, doppelte Konsonanten" },
     { id: "wortbausteine", titel: "Wortbausteine", sub: "Vorsilben und Endungen" },
     { id: "zusammen-getrennt", titel: "Zusammen oder getrennt", sub: "dass oder das, wieder oder wider" },
@@ -458,7 +487,7 @@ const EINZELCODES = [
       const stand = geuebt(b.id);
       fuellung.style.width = (stand.gesamt > 0 ? Math.round(stand.geuebt / stand.gesamt * 100) : 0) + "%";
       balken.appendChild(fuellung);
-      if (b.aktiv) karte.setAttribute("aria-label", b.titel + ", " + stand.geuebt + " von " + stand.gesamt + " Texten geübt");
+      if (b.aktiv) karte.setAttribute("aria-label", stand.gesamt === 0 ? b.titel + ", für diese Stufe noch keine Aufgaben" : b.titel + ", " + stand.geuebt + " von " + stand.gesamt + " Aufgaben geübt");
       karte.appendChild(bild); karte.appendChild(h); karte.appendChild(sub); karte.appendChild(balken);
       if (b.aktiv) {
         karte.addEventListener("click", function () { oeffneBereich(b); });
@@ -493,9 +522,20 @@ const EINZELCODES = [
         { id: "gk-s-03", text: "^ben geht heute ^abend ins ^kino. ^gestern ^morgen hat er noch ^hausaufgaben gemacht. ^er hofft auf etwas ^lustiges." },
         { id: "gk-s-04", text: "^jana hat gestern ^abend noch lange geübt. ^im ^stillen war sie stolz auf sich. ^heute ^morgen erzählte sie ihrer ^freundin etwas ^neues." }
       ]
+    }    ,
+    "laute-vf": {
+      /* Typ B: {Auswahl:richtig} steht für eine Lücke im Wort. */
+      leicht: [
+        { id: "vf-l-01", typ: "B", text: "Der {V/F:V}ogel sitzt auf dem {V/F:F}eld und sucht {V/F:F}utter." },
+        { id: "vf-l-02", typ: "B", text: "Mein {V/F:V}ater kauft {V/F:V}ier {V/F:F}ische." },
+        { id: "vf-l-03", typ: "B", text: "Unser {V/F:F}reund zeigt uns ein {V/F:F}oto von {V/F:V}ier Hunden." },
+        { id: "vf-l-04", typ: "B", text: "Die {V/F:F}amilie geht {V/F:V}or dem Essen in den Garten." }
+      ],
+      mittel: [],
+      schwer: []
     }
   };
-  const uebung = { bereich: null, aufgabe: null, woerter: [], geprueft: false };
+  const uebung = { bereich: null, aufgabe: null, woerter: [], geprueft: false, unter: null };
 
   /* Ergebnisse: Mit Einzelcode im Profil (bleibt gespeichert), mit dem gemeinsamen Code nur im Arbeitsspeicher. */
   let sitzungsErgebnisse = {};
@@ -512,11 +552,20 @@ const EINZELCODES = [
     return d.getFullYear() + "-" + z(d.getMonth() + 1) + "-" + z(d.getDate());
   }
   function schluessel(bereichId, aufgabe) { return bereichId + "|" + stufe + "|" + aufgabe.id; }
-  function geuebt(bereichId) {
+  function geuebtEinzeln(bereichId) {
     const liste = (AUFGABEN[bereichId] && AUFGABEN[bereichId][stufe]) || [];
     const e = ergebnisse();
     const n = liste.filter(function (a) { return e[schluessel(bereichId, a)] && e[schluessel(bereichId, a)].versuche > 0; }).length;
     return { geuebt: n, gesamt: liste.length };
+  }
+  function geuebt(bereichId) {
+    const b = BEREICHE.filter(function (x) { return x.id === bereichId; })[0];
+    if (b && b.unterthemen) {
+      let n = 0, g = 0;
+      b.unterthemen.forEach(function (u) { const r = geuebtEinzeln(u.id); n += r.geuebt; g += r.gesamt; });
+      return { geuebt: n, gesamt: g };
+    }
+    return geuebtEinzeln(bereichId);
   }
   function merkeErgebnis(prozent) {
     const e = ergebnisse();
@@ -548,7 +597,10 @@ const EINZELCODES = [
   function grossGeschrieben(w) { return w.charAt(0).toUpperCase() + w.slice(1); }
 
   function oeffneBereich(bereich) {
-    const hinweis = document.getElementById("stufen-hinweis");
+    if (bereich.unterthemen) { zeigeUnterthemen(bereich); return; }
+    starteBereich(bereich, document.getElementById("stufen-hinweis"), null);
+  }
+  function starteBereich(bereich, hinweis, haupt) {
     const aufgaben = (AUFGABEN[bereich.id] && AUFGABEN[bereich.id][stufe]) || [];
     if (aufgaben.length === 0) {
       hinweis.textContent = "Für „" + stufe + "“ gibt es hier noch keine Aufgaben. Probier „leicht“.";
@@ -556,21 +608,142 @@ const EINZELCODES = [
       return;
     }
     hinweis.hidden = true;
-    uebung.bereich = bereich;
+    uebung.bereich = bereich; uebung.unter = haupt;
     startAufgabe(aufgaben[0], 0, aufgaben.length);
     zeige("ansicht-uebung");
   }
+  function zeigeUnterthemen(haupt) {
+    uebung.unter = haupt;
+    document.getElementById("unter-titel").textContent = haupt.titel;
+    document.getElementById("unter-stufe").textContent = stufe;
+    const hinweis = document.getElementById("unter-hinweis"); hinweis.hidden = true;
+    const liste = document.getElementById("unter-liste"); liste.innerHTML = "";
+    haupt.unterthemen.forEach(function (u) {
+      const li = document.createElement("li");
+      const karte = document.createElement(u.aktiv ? "button" : "div");
+      karte.className = "kachel einfach";
+      if (u.aktiv) karte.type = "button";
+      const h = document.createElement("h3"); h.textContent = u.titel;
+      const sub = document.createElement("span"); sub.className = "sub"; sub.textContent = u.sub;
+      karte.appendChild(h); karte.appendChild(sub);
+      if (u.aktiv) {
+        const stand = geuebtEinzeln(u.id);
+        const balken = document.createElement("span"); balken.className = "balken"; balken.setAttribute("aria-hidden", "true");
+        const f = document.createElement("i");
+        f.style.width = (stand.gesamt > 0 ? Math.round(stand.geuebt / stand.gesamt * 100) : 0) + "%";
+        balken.appendChild(f); karte.appendChild(balken);
+        karte.setAttribute("aria-label", u.titel + ", " + stand.geuebt + " von " + stand.gesamt + " Aufgaben geübt");
+        karte.addEventListener("click", function () {
+          starteBereich({ id: u.id, titel: haupt.titel + ": " + u.titel }, hinweis, haupt);
+        });
+      } else {
+        const bald = document.createElement("span"); bald.className = "bald"; bald.textContent = "kommt bald";
+        karte.appendChild(bald);
+      }
+      li.appendChild(karte); liste.appendChild(li);
+    });
+    zeige("ansicht-unterthemen");
+  }
   function startAufgabe(aufgabe, index, anzahl) {
     uebung.aufgabe = aufgabe; uebung.geprueft = false;
-    uebung.woerter = zerlege(aufgabe.text);
+    const typB = aufgabe.typ === "B";
+    uebung.woerter = typB ? zerlegeLuecken(aufgabe.text) : zerlege(aufgabe.text);
+    document.getElementById("uebung-text").className = typB ? "text luecken" : "text";
+    document.getElementById("uebung-aufgabe").textContent = typB ? "Tippe bei jedem Wort den Buchstaben an, der passt." : "Tippe alle Wörter an, die großgeschrieben werden müssen.";
+    document.getElementById("uebung-hinweis").hidden = true;
+    document.getElementById("uebung-weiter").textContent = typB ? "Nächster Satz" : "Nächster Text";
     document.getElementById("uebung-titel").textContent = uebung.bereich.titel;
     document.getElementById("uebung-stufe").textContent = stufe;
-    document.getElementById("uebung-nummer").textContent = "Text " + (index + 1) + " von " + anzahl;
+    document.getElementById("uebung-nummer").textContent = (typB ? "Satz " : "Text ") + (index + 1) + " von " + anzahl;
     document.getElementById("uebung-ergebnis").hidden = true;
     document.getElementById("uebung-nochmal").hidden = true;
     document.getElementById("uebung-weiter").hidden = true;
     document.getElementById("uebung-pruefen").hidden = false;
-    zeichneText(-1);
+    if (typB) zeichneLuecken(-1); else zeichneText(-1);
+  }
+  /* Typ B: Satz mit Lücken. {V/F:V} = Auswahl V oder F, richtig ist V. */
+  function zerlegeLuecken(text) {
+    return text.split(" ").map(function (t) {
+      const m = /^(.*?)\{([^:}]+):([^}]+)\}(.*)$/.exec(t);
+      if (!m) return { text: t, luecke: null };
+      return { vor: m[1], nach: m[4], luecke: { optionen: m[2].split("/"), richtig: m[3], gewaehlt: null } };
+    });
+  }
+  function buchstabe(w, o) { return w.vor === "" ? o.toUpperCase() : o.toLowerCase(); }
+  function zeichneLuecken(fokus) {
+    const box = document.getElementById("uebung-text");
+    box.innerHTML = "";
+    let nr = 0, fokusKnopf = null;
+    uebung.woerter.forEach(function (w) {
+      if (!w.luecke) { const sw = document.createElement("span"); sw.className = "satzwort"; sw.textContent = w.text; box.appendChild(sw); box.appendChild(document.createTextNode(" ")); return; }
+      nr++;
+      const L = w.luecke;
+      const wrap = document.createElement("span"); wrap.className = "luecken-wort";
+      const t = document.createElement("span"); t.className = "lw-text";
+      const gewaehlt = L.gewaehlt;
+      let zeige = gewaehlt, zustand = "";
+      if (uebung.geprueft) {
+        if (gewaehlt === L.richtig) { t.classList.add("richtig"); zustand = "richtig"; }
+        else { t.classList.add("fehlt"); zeige = L.richtig; zustand = "so schreibt man es"; }
+      }
+      t.appendChild(document.createTextNode(w.vor));
+      if (zeige) { const e = document.createElement("span"); e.className = "eingesetzt"; e.textContent = buchstabe(w, zeige); t.appendChild(e); }
+      else { const e = document.createElement("span"); e.className = "leer"; e.textContent = "_"; t.appendChild(e); }
+      t.appendChild(document.createTextNode(w.nach));
+      if (zustand) t.setAttribute("aria-label", w.vor + buchstabe(w, zeige) + w.nach + ", " + zustand);
+      wrap.appendChild(t);
+      if (!uebung.geprueft) {
+        const wahl = document.createElement("span"); wahl.className = "lw-wahl";
+        wahl.setAttribute("role", "group"); wahl.setAttribute("aria-label", "Lücke " + nr);
+        L.optionen.forEach(function (o) {
+          const b = document.createElement("button"); b.type = "button"; b.textContent = o.toUpperCase();
+          b.setAttribute("aria-pressed", gewaehlt === o ? "true" : "false");
+          b.setAttribute("aria-label", o.toUpperCase() + " einsetzen, Lücke " + nr);
+          b.addEventListener("click", function () {
+            L.gewaehlt = o; document.getElementById("uebung-hinweis").hidden = true;
+            zeichneLuecken(uebung.woerter.indexOf(w) * 10 + L.optionen.indexOf(o));
+          });
+          if (fokus === uebung.woerter.indexOf(w) * 10 + L.optionen.indexOf(o)) fokusKnopf = b;
+          wahl.appendChild(b);
+        });
+        wrap.appendChild(wahl);
+      }
+      box.appendChild(wrap);
+      box.appendChild(document.createTextNode(" "));
+    });
+    if (fokusKnopf) fokusKnopf.focus({ preventScroll: true });
+  }
+  function pruefeLuecken() {
+    const luecken = uebung.woerter.filter(function (w) { return w.luecke; }).map(function (w) { return w.luecke; });
+    const leer = luecken.filter(function (L) { return !L.gewaehlt; }).length;
+    const hinweis = document.getElementById("uebung-hinweis");
+    if (leer > 0) {
+      hinweis.textContent = (leer === 1 ? "Eine Lücke ist noch leer." : leer + " Lücken sind noch leer.") + " Tippe bei jedem Wort einen Buchstaben an, dann kannst du prüfen.";
+      hinweis.hidden = false;
+      return;
+    }
+    hinweis.hidden = true;
+    uebung.geprueft = true;
+    zeichneLuecken(-1);
+    const richtig = luecken.filter(function (L) { return L.gewaehlt === L.richtig; }).length;
+    const meldung = richtig === luecken.length ? "Alles richtig."
+      : "Du hast " + richtig + " von " + luecken.length + " Lücken richtig. Die orangen Wörter schreibt man so.";
+    zeigeErgebnis(meldung, Math.round(richtig / luecken.length * 100),
+      [["background:var(--accent)", "richtig"], ["background:var(--amber-soft);border-bottom:3px solid var(--amber)", "so schreibt man das Wort"]]);
+  }
+  function zeigeErgebnis(meldung, prozent, legende) {
+    merkeErgebnis(prozent);
+    const liste = AUFGABEN[uebung.bereich.id][stufe];
+    document.getElementById("uebung-weiter").hidden = (liste.indexOf(uebung.aufgabe) >= liste.length - 1);
+    document.getElementById("uebung-meldung").textContent = meldung;
+    const leg = document.getElementById("uebung-legende"); leg.innerHTML = "";
+    legende.forEach(function (x) {
+      const li = document.createElement("li"); const sp = document.createElement("span");
+      sp.setAttribute("style", x[0]); li.appendChild(sp); li.appendChild(document.createTextNode(x[1])); leg.appendChild(li);
+    });
+    document.getElementById("uebung-ergebnis").hidden = false;
+    document.getElementById("uebung-pruefen").hidden = true;
+    document.getElementById("uebung-nochmal").hidden = false;
   }
   function zeichneText(fokus) {
     const box = document.getElementById("uebung-text");
@@ -597,6 +770,7 @@ const EINZELCODES = [
     if (fokus >= 0) { const nb = box.querySelectorAll(".wort")[fokus]; if (nb) nb.focus({ preventScroll: true }); }
   }
   function pruefe() {
+    if (uebung.aufgabe.typ === "B") { pruefeLuecken(); return; }
     uebung.geprueft = true;
     zeichneText(-1);
     const noetig = uebung.woerter.filter(function (w) { return w.gross; }).length;
@@ -610,13 +784,10 @@ const EINZELCODES = [
       if (zuviel > 0) meldung += " " + (zuviel === 1 ? "Ein Wort, das du angetippt hast, bleibt" : zuviel + " Wörter, die du angetippt hast, bleiben") + " klein.";
       if (gefunden < noetig) meldung += " Die orangen Wörter fehlten noch.";
     }
-    merkeErgebnis(Math.round(Math.max(0, gefunden - zuviel) / noetig * 100));
-    const liste = AUFGABEN[uebung.bereich.id][stufe];
-    document.getElementById("uebung-weiter").hidden = (liste.indexOf(uebung.aufgabe) >= liste.length - 1);
-    document.getElementById("uebung-meldung").textContent = meldung;
-    document.getElementById("uebung-ergebnis").hidden = false;
-    document.getElementById("uebung-pruefen").hidden = true;
-    document.getElementById("uebung-nochmal").hidden = false;
+    zeigeErgebnis(meldung, Math.round(Math.max(0, gefunden - zuviel) / noetig * 100),
+      [["background:var(--accent)", "richtig großgeschrieben"],
+       ["background:var(--amber-soft);border-bottom:3px solid var(--amber)", "hier fehlte noch ein Großbuchstabe"],
+       ["border-radius:0;height:14px;border-bottom:3px dashed var(--ink-soft)", "bleibt klein"]]);
   }
   document.getElementById("uebung-pruefen").addEventListener("click", pruefe);
   document.getElementById("uebung-nochmal").addEventListener("click", function () {
@@ -629,7 +800,10 @@ const EINZELCODES = [
     const i = liste.indexOf(uebung.aufgabe) + 1;
     if (i < liste.length) { startAufgabe(liste[i], i, liste.length); window.scrollTo(0, 0); }
   });
-  document.getElementById("uebung-zurueck").addEventListener("click", function () { zeigeStart(); });
+  document.getElementById("uebung-zurueck").addEventListener("click", function () {
+    if (uebung.unter) zeigeUnterthemen(uebung.unter); else zeigeStart();
+  });
+  document.getElementById("unter-zurueck").addEventListener("click", function () { zeigeStart(); });
 
   document.getElementById("stufen-schalter").addEventListener("click", function (e) {
     const b = e.target.closest("button"); if (!b) return;
@@ -646,7 +820,7 @@ const EINZELCODES = [
   });
 
   /* Ansichten */
-  const ANSICHTEN = ["ansicht-zugang", "ansicht-wer", "ansicht-start", "ansicht-uebung", "ansicht-einstellungen", "ansicht-kennwort", "ansicht-lehrkraft"];
+  const ANSICHTEN = ["ansicht-zugang", "ansicht-wer", "ansicht-start", "ansicht-unterthemen", "ansicht-uebung", "ansicht-einstellungen", "ansicht-kennwort", "ansicht-lehrkraft"];
   function zeige(id) {
     ANSICHTEN.forEach(function (a) { document.getElementById(a).hidden = (a !== id); });
     window.scrollTo(0, 0);
