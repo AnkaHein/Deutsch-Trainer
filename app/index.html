@@ -194,6 +194,17 @@
   .kachel .bild img { width: 76px; height: 76px; object-fit: contain; display: block; }
   .kachel h3 { margin: 0; font-size: 1.05rem; line-height: 1.25; }
   .kachel .sub { font-size: .88rem; color: var(--ink-soft); }
+  .fs-karte h3 { margin: 0 0 10px; }
+  .fs-zeile { display: grid; grid-template-columns: 4.5rem 1fr auto; align-items: center; gap: 10px; margin: 6px 0; }
+  .fs-zeile .name { color: var(--ink-soft); }
+  .fs-zeile .bar { height: 12px; border-radius: 99px; background: var(--surface-2); overflow: hidden; }
+  .fs-zeile .bar i { display: block; height: 100%; width: 0; background: var(--accent); border-radius: inherit; }
+  .fs-zeile .zahl { font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .fs-unter { margin: 14px 0 4px; font-weight: 700; }
+  .fs-aktion { margin-top: 14px; }
+  .fs-frage { margin: 14px 0 0; padding: 14px; border-radius: 14px; background: var(--surface-2); border-left: 5px solid var(--amber); }
+  .fs-frage p { margin: 0 0 12px; }
+  .fs-frage .zeile { display: flex; flex-wrap: wrap; gap: 10px; }
   .kachel .balken { height: 8px; border-radius: 99px; background: var(--surface-2); overflow: hidden; margin-top: 4px; }
   .kachel .balken i { display: block; height: 100%; width: 0; background: var(--accent); border-radius: inherit; }
   .kachel .bald { grid-column: 2; white-space: nowrap; justify-self: start; font-size: .8rem; background: var(--surface-2); color: var(--ink-soft); border-radius: 99px; padding: 2px 12px; }
@@ -262,6 +273,7 @@
         <p class="notiz" id="status-text"></p>
       </div>
       <div class="links">
+        <button class="btn small" id="zu-fortschritt" type="button">Mein Fortschritt</button>
         <button class="btn ghost small" data-zu="einstellungen" type="button">Einstellungen</button>
         <button class="btn ghost small" id="abmelden" type="button">Abmelden</button>
       </div>
@@ -276,6 +288,22 @@
     </div>
     <p class="hinweis" id="stufen-hinweis" role="status" hidden></p>
     <ul class="kacheln" id="kacheln"></ul>
+  </section>
+
+  <!-- Mein Fortschritt -->
+  <section id="ansicht-fortschritt" hidden>
+    <div class="uebung-kopf">
+      <button class="btn ghost small" id="fortschritt-zurueck" type="button">Zurück</button>
+      <h2 tabindex="-1">Mein Fortschritt</h2>
+    </div>
+    <p class="notiz" id="fortschritt-notiz"></p>
+    <div id="fortschritt-liste"></div>
+    <div class="karte fortschritt-alles">
+      <h3>Alles von vorn</h3>
+      <p class="lead">Löscht deinen Stand in allen Bereichen und allen Stufen.</p>
+      <div id="fortschritt-alles-platz"></div>
+    </div>
+    <div class="zeile"><button class="btn ghost" id="fortschritt-zurueck-unten" type="button">Zurück</button></div>
   </section>
 
   <!-- Unterthemen -->
@@ -370,7 +398,7 @@
 <footer>Evangelisches Schulzentrum Bad Düben &middot; <span style="white-space:nowrap">Version <span id="version"></span></span></footer>
 
 <script>
-const APP_VERSION = "1.10.0";
+const APP_VERSION = "1.11.0";
 document.getElementById("version").textContent = APP_VERSION;
 
 (function () {
@@ -1313,7 +1341,7 @@ const EINZELCODES = [
   });
 
   /* Ansichten */
-  const ANSICHTEN = ["ansicht-zugang", "ansicht-wer", "ansicht-start", "ansicht-unterthemen", "ansicht-uebung", "ansicht-einstellungen", "ansicht-kennwort", "ansicht-lehrkraft"];
+  const ANSICHTEN = ["ansicht-zugang", "ansicht-wer", "ansicht-start", "ansicht-fortschritt", "ansicht-unterthemen", "ansicht-uebung", "ansicht-einstellungen", "ansicht-kennwort", "ansicht-lehrkraft"];
   function zeige(id) {
     ANSICHTEN.forEach(function (a) { document.getElementById(a).hidden = (a !== id); });
     window.scrollTo(0, 0);
@@ -1374,6 +1402,91 @@ const EINZELCODES = [
     if (daten.aktuellerCode) { daten.aktuellerCode = ""; speichere(); }
     if (daten.profile.length > 0) { zeigeWer(); } else { zeigeZugang(); }
   }
+
+  /* Mein Fortschritt */
+  function standFuer(bereichId, st) {
+    const liste = (AUFGABEN[bereichId] && AUFGABEN[bereichId][st]) || [];
+    const e = ergebnisse();
+    const n = liste.filter(function (a) { const r = e[bereichId + "|" + st + "|" + a.id]; return r && r.versuche > 0; }).length;
+    return { geuebt: n, gesamt: liste.length };
+  }
+  function bereichsIds(b) { return b.unterthemen ? b.unterthemen.map(function (u) { return u.id; }) : [b.id]; }
+  function setzeZurueck(ids) {
+    const e = ergebnisse();
+    Object.keys(e).forEach(function (k) {
+      const bid = k.split("|")[0];
+      if (ids === null || ids.indexOf(bid) >= 0) delete e[k];
+    });
+    if (sitzung.art === "einzel") speichere();
+  }
+  function fsZeilen(ziel, bereichId) {
+    STUFEN.forEach(function (st) {
+      const r = standFuer(bereichId, st);
+      const z = document.createElement("div"); z.className = "fs-zeile";
+      const n = document.createElement("span"); n.className = "name"; n.textContent = st;
+      const bar = document.createElement("span"); bar.className = "bar"; bar.setAttribute("aria-hidden", "true");
+      const f = document.createElement("i"); f.style.width = (r.gesamt > 0 ? Math.round(r.geuebt / r.gesamt * 100) : 0) + "%";
+      bar.appendChild(f);
+      const zahl = document.createElement("span"); zahl.className = "zahl"; zahl.textContent = r.geuebt + " von " + r.gesamt + " geübt";
+      z.appendChild(n); z.appendChild(bar); z.appendChild(zahl);
+      ziel.appendChild(z);
+    });
+  }
+  /* Rückfrage innerhalb der App (kein Systemdialog) */
+  function fsFrage(platz, knopfText, frageText, jaText, aktion) {
+    platz.innerHTML = "";
+    const k = document.createElement("button");
+    k.className = "btn ghost"; k.type = "button"; k.textContent = knopfText;
+    k.addEventListener("click", function () {
+      platz.innerHTML = "";
+      const box = document.createElement("div"); box.className = "fs-frage"; box.setAttribute("role", "alertdialog");
+      const p = document.createElement("p"); p.textContent = frageText;
+      const zeile = document.createElement("div"); zeile.className = "zeile";
+      const ja = document.createElement("button"); ja.className = "btn"; ja.type = "button"; ja.textContent = jaText;
+      const nein = document.createElement("button"); nein.className = "btn ghost"; nein.type = "button"; nein.textContent = "Abbrechen";
+      ja.addEventListener("click", aktion);
+      nein.addEventListener("click", function () { fsFrage(platz, knopfText, frageText, jaText, aktion); k2().focus(); });
+      function k2() { return platz.querySelector("button"); }
+      zeile.appendChild(ja); zeile.appendChild(nein);
+      box.appendChild(p); box.appendChild(zeile);
+      platz.appendChild(box);
+      nein.focus();
+    });
+    platz.appendChild(k);
+  }
+  function zeigeFortschritt() {
+    const notiz = document.getElementById("fortschritt-notiz");
+    notiz.textContent = sitzung.art === "einzel"
+      ? "Dein Stand wird mit deinem Code gespeichert."
+      : "Ohne Code wird nichts gespeichert. Dieser Stand gilt nur, solange die App offen ist.";
+    const liste = document.getElementById("fortschritt-liste");
+    liste.innerHTML = "";
+    BEREICHE.forEach(function (b) {
+      if (!b.aktiv) return;
+      const karte = document.createElement("div"); karte.className = "karte fs-karte";
+      const h = document.createElement("h3"); h.textContent = b.titel; karte.appendChild(h);
+      if (b.unterthemen) {
+        b.unterthemen.forEach(function (u) {
+          const t = document.createElement("p"); t.className = "fs-unter"; t.textContent = u.titel; karte.appendChild(t);
+          fsZeilen(karte, u.id);
+        });
+      } else { fsZeilen(karte, b.id); }
+      const platz = document.createElement("div"); platz.className = "fs-aktion";
+      karte.appendChild(platz);
+      fsFrage(platz, "Von vorn beginnen", "Willst du in „" + b.titel + "“ wirklich von vorn beginnen? Dein Stand in diesem Bereich wird gelöscht. Die anderen Bereiche bleiben.", "Ja, von vorn", function () {
+        setzeZurueck(bereichsIds(b));
+        zeigeFortschritt();
+      });
+      liste.appendChild(karte);
+    });
+    fsFrage(document.getElementById("fortschritt-alles-platz"), "Alles von vorn", "Willst du wirklich überall von vorn beginnen? Dein ganzer Stand wird gelöscht.", "Ja, alles löschen", function () {
+      setzeZurueck(null);
+      zeigeFortschritt();
+    });
+  }
+  auf("zu-fortschritt", function () { zeigeFortschritt(); zeige("ansicht-fortschritt"); });
+  auf("fortschritt-zurueck", zeigeStart);
+  auf("fortschritt-zurueck-unten", zeigeStart);
 
   /* Zugang */
   document.getElementById("zugang-formular").addEventListener("submit", function (e) {
