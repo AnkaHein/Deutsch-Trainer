@@ -316,7 +316,7 @@
 <footer>Evangelisches Schulzentrum Bad Düben &middot; <span style="white-space:nowrap">Version <span id="version"></span></span></footer>
 
 <script>
-const APP_VERSION = "1.6.0";
+const APP_VERSION = "1.7.0";
 document.getElementById("version").textContent = APP_VERSION;
 
 (function () {
@@ -481,8 +481,18 @@ const EINZELCODES = [
         { id: "gk-l-03", text: "^in der ^pause spielen ^ben und ^finn ^fußball auf dem ^hof. ^die ^kinder rufen laut. ^danach trinken alle ^wasser aus der ^flasche." },
         { id: "gk-l-04", text: "^im ^herbst fallen die ^blätter von den ^bäumen. ^lena und ^tom sammeln bunte ^blätter im ^garten. ^danach basteln sie ein ^bild für die ^mutter." }
       ],
-      mittel: [],
-      schwer: []
+      mittel: [
+        { id: "gk-m-01", text: "^beim ^lesen im ^bus vergisst ^jonas oft die ^zeit. ^einmal ist er an seiner ^haltestelle vorbeigefahren. ^zum ^glück hat ihn ein ^freund angerufen." },
+        { id: "gk-m-02", text: "^im ^winter ist es früh dunkel. ^mara wartet an der ^ecke auf den ^bus. ^beim ^warten friert sie ein wenig. ^drinnen ist es dann angenehm warm." },
+        { id: "gk-m-03", text: "^nach dem ^essen räumt ^emil den ^tisch ab. ^beim ^abwaschen hilft ihm seine ^oma. ^danach spielen beide ein ^spiel mit ^karten." },
+        { id: "gk-m-04", text: "^leon liebt das ^schwimmen im ^meer. ^am ^strand sammelt er ^muscheln und ^steine. ^beim ^tauchen sieht er manchmal einen ^fisch." }
+      ],
+      schwer: [
+        { id: "gk-s-01", text: "^lisa hat gestern ^morgen im ^garten etwas ^schönes entdeckt. ^sie will es ihrer ^mutter heute ^abend zeigen. ^vielleicht bringt sie auch etwas ^neues mit." },
+        { id: "gk-s-02", text: "^die ^lehrerin hat die ^hefte heute ^morgen zurückgegeben. ^nora hat im ^stillen auf eine gute ^note gehofft. ^sie hat etwas ^gutes bekommen, nämlich eine ^eins." },
+        { id: "gk-s-03", text: "^ben geht heute ^abend ins ^kino. ^gestern ^morgen hat er noch ^hausaufgaben gemacht. ^er hofft auf etwas ^lustiges." },
+        { id: "gk-s-04", text: "^jana hat gestern ^abend noch lange geübt. ^im ^stillen war sie stolz auf sich. ^heute ^morgen erzählte sie ihrer ^freundin etwas ^neues." }
+      ]
     }
   };
   const uebung = { bereich: null, aufgabe: null, woerter: [], geprueft: false };
@@ -631,6 +641,7 @@ const EINZELCODES = [
       if (p) { p.stufe = stufe; speichere(); }
     }
     zeichneStufenschalter();
+    zeichneKacheln();
     document.getElementById("stufen-hinweis").hidden = true;
   });
 
