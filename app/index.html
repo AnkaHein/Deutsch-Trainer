@@ -147,6 +147,7 @@
   .lw-wahl button[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); }
   .kachel.einfach { grid-template-columns: minmax(0, 1fr); }
   .kachel.einfach .bald { grid-column: 1; }
+  .hilfe { margin: 12px 0 0; padding: 12px 16px; border-radius: 12px; background: var(--accent-soft); border-left: 5px solid var(--accent); }
   .ergebnis { margin-top: 16px; }
   .ergebnis strong { font-size: 1.15rem; display: block; margin-bottom: 8px; }
   .legende { display: flex; flex-wrap: wrap; gap: 8px 20px; margin: 10px 0 0; padding: 0; list-style: none; font-size: .9rem; color: var(--ink-soft); }
@@ -274,8 +275,10 @@
     <p class="aufgabe" id="uebung-aufgabe">Tippe alle Wörter an, die großgeschrieben werden müssen.</p>
     <div class="text" id="uebung-text"></div>
     <p class="hinweis" id="uebung-hinweis" role="status" hidden></p>
+    <p class="hilfe" id="uebung-hilfe" hidden></p>
     <div class="zeile">
       <button class="btn" id="uebung-pruefen" type="button">Prüfen</button>
+      <button class="btn ghost" id="uebung-hilfe-knopf" type="button" aria-expanded="false" hidden>Hilfe</button>
       <button class="btn ghost" id="uebung-nochmal" type="button" hidden>Nochmal versuchen</button>
       <button class="btn" id="uebung-weiter" type="button" hidden>Nächster Text</button>
     </div>
@@ -341,7 +344,7 @@
 <footer>Evangelisches Schulzentrum Bad Düben &middot; <span style="white-space:nowrap">Version <span id="version"></span></span></footer>
 
 <script>
-const APP_VERSION = "1.8.0";
+const APP_VERSION = "1.9.0";
 document.getElementById("version").textContent = APP_VERSION;
 
 (function () {
@@ -443,7 +446,8 @@ const EINZELCODES = [
     { id: "woertliche-rede", titel: "Wörtliche Rede", sub: "Zeichen vor und nach der Rede" },
     { id: "satzschluss", titel: "Satzschlusszeichen", sub: "Punkt, Fragezeichen, Ausrufezeichen" },
     { id: "laute", titel: "Laute und Buchstaben", sub: "V/F, Ä/E, D/T und mehr", aktiv: true, unterthemen: [
-      { id: "laute-vf", titel: "V oder F", sub: "Wörter mit V und F", aktiv: true },
+      { id: "laute-vf", titel: "V oder F", sub: "Wörter mit V und F", aktiv: true,
+        hilfe: "V und F klingen oft gleich, deshalb hilft das Hören nicht. Zwei Merkhilfen: Wörter, die mit „ver“ oder „vor“ anfangen, schreibt man mit V (zum Beispiel „vergessen“ und „vorbei“). Wörter mit „fr“ am Anfang schreibt man mit F (zum Beispiel „Freund“ und „froh“). Wenn du unsicher bist: Schreib das Wort mit beiden Buchstaben auf Papier. Welches Wort sieht richtig aus?" },
       { id: "laute-ae", titel: "Ä oder E", sub: "Wörter mit Ä und E" },
       { id: "laute-dt", titel: "D oder T", sub: "Wörter mit D und T" }
     ] },
@@ -531,8 +535,18 @@ const EINZELCODES = [
         { id: "vf-l-03", typ: "B", text: "Unser {V/F:F}reund zeigt uns ein {V/F:F}oto von {V/F:V}ier Hunden." },
         { id: "vf-l-04", typ: "B", text: "Die {V/F:F}amilie geht {V/F:V}or dem Essen in den Garten." }
       ],
-      mittel: [],
-      schwer: []
+      mittel: [
+        { id: "vf-m-01", typ: "B", text: "{V/F:V}orsicht, der {V/F:F}uchs hat sich im Garten {V/F:V}ersteckt!" },
+        { id: "vf-m-02", typ: "B", text: "Meine {V/F:F}amilie hat {V/F:F}ast alles {V/F:V}erpackt." },
+        { id: "vf-m-03", typ: "B", text: "Am {V/F:V}ormittag {V/F:V}ergisst Lena oft ihr {V/F:F}rühstück." },
+        { id: "vf-m-04", typ: "B", text: "Der {V/F:F}ahrer achtet auf den {V/F:V}erkehr und {V/F:F}ährt langsam." }
+      ],
+      schwer: [
+        { id: "vf-s-01", typ: "B", text: "Im No{V/F:V}ember bekommt Jan {V/F:F}ieber und braucht {V/F:V}itamine." },
+        { id: "vf-s-02", typ: "B", text: "Der Ele{V/F:F}ant im Zoo schaut dem {V/F:F}otografen zu und {V/F:V}erschwindet dann im Stall." },
+        { id: "vf-s-03", typ: "B", text: "Oma spielt Kla{V/F:V}ier, Opa macht ein {V/F:F}oto und alle {V/F:F}reuen sich." },
+        { id: "vf-s-04", typ: "B", text: "Die Lehrerin zeigt, wie ein {V/F:V}ulkan ausbricht und {V/F:F}euer spuckt." }
+      ]
     }
   };
   const uebung = { bereich: null, aufgabe: null, woerter: [], geprueft: false, unter: null };
@@ -634,7 +648,7 @@ const EINZELCODES = [
         balken.appendChild(f); karte.appendChild(balken);
         karte.setAttribute("aria-label", u.titel + ", " + stand.geuebt + " von " + stand.gesamt + " Aufgaben geübt");
         karte.addEventListener("click", function () {
-          starteBereich({ id: u.id, titel: haupt.titel + ": " + u.titel }, hinweis, haupt);
+          starteBereich({ id: u.id, titel: haupt.titel + ": " + u.titel, hilfe: u.hilfe }, hinweis, haupt);
         });
       } else {
         const bald = document.createElement("span"); bald.className = "bald"; bald.textContent = "kommt bald";
@@ -651,6 +665,10 @@ const EINZELCODES = [
     document.getElementById("uebung-text").className = typB ? "text luecken" : "text";
     document.getElementById("uebung-aufgabe").textContent = typB ? "Tippe bei jedem Wort den Buchstaben an, der passt." : "Tippe alle Wörter an, die großgeschrieben werden müssen.";
     document.getElementById("uebung-hinweis").hidden = true;
+    const hk = document.getElementById("uebung-hilfe-knopf"), ht = document.getElementById("uebung-hilfe");
+    ht.hidden = true; hk.setAttribute("aria-expanded", "false"); hk.textContent = "Hilfe";
+    ht.textContent = uebung.bereich.hilfe || "";
+    hk.hidden = !(typB && uebung.bereich.hilfe);
     document.getElementById("uebung-weiter").textContent = typB ? "Nächster Satz" : "Nächster Text";
     document.getElementById("uebung-titel").textContent = uebung.bereich.titel;
     document.getElementById("uebung-stufe").textContent = stufe;
@@ -802,6 +820,12 @@ const EINZELCODES = [
   });
   document.getElementById("uebung-zurueck").addEventListener("click", function () {
     if (uebung.unter) zeigeUnterthemen(uebung.unter); else zeigeStart();
+  });
+  document.getElementById("uebung-hilfe-knopf").addEventListener("click", function () {
+    const ht = document.getElementById("uebung-hilfe");
+    ht.hidden = !ht.hidden;
+    this.setAttribute("aria-expanded", ht.hidden ? "false" : "true");
+    this.textContent = ht.hidden ? "Hilfe" : "Hilfe schließen";
   });
   document.getElementById("unter-zurueck").addEventListener("click", function () { zeigeStart(); });
 
