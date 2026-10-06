@@ -30,12 +30,42 @@
     --amber-soft: #fff1d6;
     --font-ui: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   }
+  /* Dunkelmodus: automatisch nach Gerät (data-modus="auto") oder von Hand (data-modus="dunkel"). */
+  :root[data-modus="dunkel"] {
+    color-scheme: dark;
+    --bg: #0e1b18; --surface: #162622; --surface-2: #1f3530; --ink: #e8f3ef; --ink-soft: #a9c6bd;
+    --line: #2f4d45; --accent: #00856f; --accent-strong: #52d4b9; --accent-deep: #a6e6d8;
+    --accent-ink: #ffffff; --accent-soft: #24493f; --amber: #f0a63a; --amber-soft: #3b2d10;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root[data-modus="auto"] {
+    color-scheme: dark;
+    --bg: #0e1b18; --surface: #162622; --surface-2: #1f3530; --ink: #e8f3ef; --ink-soft: #a9c6bd;
+    --line: #2f4d45; --accent: #00856f; --accent-strong: #52d4b9; --accent-deep: #a6e6d8;
+    --accent-ink: #ffffff; --accent-soft: #24493f; --amber: #f0a63a; --amber-soft: #3b2d10;
+    }
+    :root[data-modus="auto"] .hero .banner, :root[data-modus="auto"] .willkommen { filter: brightness(.6); }
+    :root[data-modus="auto"] .logo-plate { background: #fff; }
+  }
+  :root[data-modus="dunkel"] .hero .banner, :root[data-modus="dunkel"] .willkommen { filter: brightness(.6); }
+  :root[data-modus="dunkel"] .logo-plate { background: #fff; }
+  /* Lesehilfen: Schriftgröße über die Grundgröße, Zeilenabstand über Variablen. */
+  :root { --zeile: 1.5; --zeile-text: 1.6; --tipp: #9cc7bb; }
+  :root[data-modus="dunkel"] { --tipp: #6f968b; }
+  @media (prefers-color-scheme: dark) { :root[data-modus="auto"] { --tipp: #6f968b; } }
+  :root[data-schrift="2"] { font-size: 112.5%; }
+  :root[data-schrift="3"] { font-size: 125%; }
+  :root[data-zeilen="2"] { --zeile: 1.85; --zeile-text: 2; }
+  .seg.breit { display: flex; flex-wrap: wrap; }
+  .seg.breit button { flex: 1 1 auto; padding: 8px 14px; }
+  .lesehilfe { margin: 16px 0 6px; font-weight: 700; }
+  .lesehilfe:first-of-type { margin-top: 0; }
   * { box-sizing: border-box; }
   [hidden] { display: none !important; }
   html, body { margin: 0; min-height: 100%; }
   body {
     display: flex; flex-direction: column; min-height: 100vh; min-height: 100dvh;
-    font-family: var(--font-ui); font-size: 16px; line-height: 1.5;
+    font-family: var(--font-ui); font-size: 1rem; line-height: var(--zeile);
     background: var(--bg); color: var(--ink);
     padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
   }
@@ -121,7 +151,7 @@
   .uebung-kopf h2 { margin: 0; }
   .pille { background: var(--surface-2); color: var(--ink-soft); border-radius: 99px; padding: 2px 14px; font-size: .9rem; }
   .aufgabe { margin: 0 0 14px; font-weight: 600; }
-  .text { font-size: clamp(1.2rem, 4vw, 1.5rem); line-height: 1.6; background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 16px clamp(12px, 3vw, 26px); }
+  .text { font-size: clamp(1.2rem, 4vw, 1.5rem); line-height: var(--zeile-text); background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 16px clamp(12px, 3vw, 26px); }
   .wort { display: inline-block; vertical-align: baseline; min-height: 48px; padding: 0 8px; margin: 2px 1px; font: inherit; line-height: 44px; color: var(--ink); background: transparent; border: 0; border-bottom: 3px solid transparent; border-radius: 10px; cursor: pointer; }
   .wort:hover:not(:disabled) { background: var(--surface-2); }
   .wort.gewaehlt { background: var(--accent-soft); border-bottom-color: var(--accent); }
@@ -152,7 +182,7 @@
   .text.zeichen-wahl .lw-wahl button { min-width: 48px; font-size: 1.35rem; padding: 0 12px; }
   .text.komma { line-height: 1.5; }
   .einheit-k { white-space: nowrap; }
-  .komma-stelle { display: inline-block; vertical-align: baseline; width: 28px; min-height: 48px; margin: 2px 0; padding: 0; font: inherit; line-height: 44px; color: var(--ink); background: transparent; border: 0; border-bottom: 3px dotted var(--line); border-radius: 8px; cursor: pointer; }
+  .komma-stelle { display: inline-block; vertical-align: baseline; width: 28px; min-height: 48px; margin: 2px 0; padding: 0; font: inherit; line-height: 44px; color: var(--ink); background: transparent; border: 0; border-bottom: 3px dotted var(--tipp); border-radius: 8px; cursor: pointer; }
   .komma-stelle:hover:not(:disabled) { background: var(--surface-2); }
   .komma-stelle.gewaehlt { background: var(--accent-soft); border-bottom: 3px solid var(--accent); }
   .komma-stelle.richtig { background: var(--accent); color: var(--accent-ink); border-bottom-color: transparent; }
@@ -374,6 +404,27 @@
       <h3>Version der App</h3>
       <p class="lead" style="margin:0">Version <span id="einstellungen-version"></span></p>
     </div>
+    <div class="karte">
+      <h3>Lesehilfen</h3>
+      <p class="lead">Diese Einstellungen gelten für dieses Gerät, auch ohne Code.</p>
+      <p class="lesehilfe" id="lh-schrift-titel">Schriftgröße</p>
+      <div class="seg breit" role="group" aria-labelledby="lh-schrift-titel" data-lh="schrift">
+        <button type="button" data-wert="1" aria-pressed="true">normal</button>
+        <button type="button" data-wert="2" aria-pressed="false">groß</button>
+        <button type="button" data-wert="3" aria-pressed="false">sehr groß</button>
+      </div>
+      <p class="lesehilfe" id="lh-zeilen-titel">Zeilenabstand</p>
+      <div class="seg breit" role="group" aria-labelledby="lh-zeilen-titel" data-lh="zeilen">
+        <button type="button" data-wert="1" aria-pressed="true">normal</button>
+        <button type="button" data-wert="2" aria-pressed="false">weit</button>
+      </div>
+      <p class="lesehilfe" id="lh-modus-titel">Darstellung</p>
+      <div class="seg breit" role="group" aria-labelledby="lh-modus-titel" data-lh="modus">
+        <button type="button" data-wert="auto" aria-pressed="true">wie das Gerät</button>
+        <button type="button" data-wert="hell" aria-pressed="false">hell</button>
+        <button type="button" data-wert="dunkel" aria-pressed="false">dunkel</button>
+      </div>
+    </div>
     <div class="karte" id="karte-code-wechseln" hidden>
       <h3>Code</h3>
       <p class="lead">Wechsle zu einem anderen Code oder melde dich ab.</p>
@@ -453,7 +504,7 @@
 <footer>Evangelisches Schulzentrum Bad Düben &middot; <span style="white-space:nowrap">Version <span id="version"></span></span></footer>
 
 <script>
-const APP_VERSION = "1.13.0";
+const APP_VERSION = "1.14.0";
 document.getElementById("version").textContent = APP_VERSION;
 
 (function () {
@@ -529,6 +580,37 @@ const EINZELCODES = [
     try { localStorage.setItem(SPEICHER_SCHLUESSEL, JSON.stringify(daten)); } catch (e) {}
   }
   const daten = ladeSpeicher();
+
+  /* Lesehilfen und Darstellung: gelten für das Gerät (Bereich "geraet"), nicht für ein Kind. */
+  const LESEHILFEN_STANDARD = { schrift: "1", zeilen: "1", modus: "auto" };
+  const LESEHILFEN_ERLAUBT = { schrift: ["1", "2", "3"], zeilen: ["1", "2"], modus: ["auto", "hell", "dunkel"] };
+  function lesehilfe(name) {
+    const w = daten.geraet && daten.geraet[name];
+    return LESEHILFEN_ERLAUBT[name].indexOf(w) >= 0 ? w : LESEHILFEN_STANDARD[name];
+  }
+  function wendeLesehilfenAn() {
+    const r = document.documentElement;
+    r.setAttribute("data-schrift", lesehilfe("schrift"));
+    r.setAttribute("data-zeilen", lesehilfe("zeilen"));
+    r.setAttribute("data-modus", lesehilfe("modus"));
+    document.querySelectorAll("[data-lh]").forEach(function (gruppe) {
+      const aktuellerWert = lesehilfe(gruppe.getAttribute("data-lh"));
+      gruppe.querySelectorAll("button").forEach(function (b) {
+        b.setAttribute("aria-pressed", b.getAttribute("data-wert") === aktuellerWert ? "true" : "false");
+      });
+    });
+  }
+  document.querySelectorAll("[data-lh]").forEach(function (gruppe) {
+    gruppe.querySelectorAll("button").forEach(function (b) {
+      b.addEventListener("click", function () {
+        if (!daten.geraet || typeof daten.geraet !== "object") daten.geraet = {};
+        daten.geraet[gruppe.getAttribute("data-lh")] = b.getAttribute("data-wert");
+        speichere();
+        wendeLesehilfenAn();
+      });
+    });
+  });
+  wendeLesehilfenAn();
 
   /* Codes: Vergleich ohne Groß-/Kleinschreibung und ohne Bindestrich oder Leerzeichen. */
   function normal(text) { return String(text).toUpperCase().replace(/[^A-Z0-9]/g, ""); }
