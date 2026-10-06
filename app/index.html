@@ -425,6 +425,13 @@
         <button type="button" data-wert="dunkel" aria-pressed="false">dunkel</button>
       </div>
     </div>
+    <div class="karte" id="karte-sichern">
+      <h3>Daten sichern</h3>
+      <p class="lead">Lege die App auf den Home-Bildschirm und sichere deine Daten regelmäßig.</p>
+      <p class="notiz" id="sichern-ohne" hidden>Ohne Code gibt es nichts zu sichern.</p>
+      <button class="btn" id="sichern-schueler" type="button" hidden>Daten sichern</button>
+      <p class="hinweis" id="sichern-meldung" role="status" hidden></p>
+    </div>
     <div class="karte" id="karte-code-wechseln" hidden>
       <h3>Code</h3>
       <p class="lead">Wechsle zu einem anderen Code oder melde dich ab.</p>
@@ -468,6 +475,12 @@
       <ol class="codeliste" id="code-einzel"></ol>
     </div>
     <div class="karte">
+      <h3>Alles sichern</h3>
+      <p class="lead">Sichert die Profile aller Codes auf diesem Gerät in einer Datei.</p>
+      <button class="btn" id="sichern-lehrkraft" type="button">Alles sichern</button>
+      <p class="hinweis" id="sichern-lehrkraft-meldung" role="status" hidden></p>
+    </div>
+    <div class="karte">
       <h3>Auswertung</h3>
       <p class="lead">Sieh nach, welche Codes geübt haben und wie.</p>
       <div class="zeile">
@@ -504,7 +517,7 @@
 <footer>Evangelisches Schulzentrum Bad Düben &middot; <span style="white-space:nowrap">Version <span id="version"></span></span></footer>
 
 <script>
-const APP_VERSION = "1.14.0";
+const APP_VERSION = "1.15.0";
 document.getElementById("version").textContent = APP_VERSION;
 
 (function () {
@@ -1625,6 +1638,59 @@ const EINZELCODES = [
   auf("fortschritt-zurueck", zeigeStart);
   auf("fortschritt-zurueck-unten", zeigeStart);
 
+  /* Daten sichern (Export als JSON-Datei, Aufbau nach Bauplan A6) */
+  function exportDatei(art, profile) {
+    return JSON.stringify({
+      app: SPEICHER_SCHLUESSEL, schema: SCHEMA, appVersion: APP_VERSION,
+      exportiert: new Date().toISOString(), art: art, profile: profile
+    }, null, 2);
+  }
+  function dateiname(art, code) {
+    return "rechtschreib-training_" + (art === "schueler" ? normal(code) : "alle-codes") + "_" + heute() + ".json";
+  }
+  function zeigeMeldung(el, text) { el.textContent = text; el.hidden = false; }
+  function sichere(art, profile, name, meldeEl) {
+    const inhalt = exportDatei(art, profile);
+    let datei = null;
+    try { datei = new File([inhalt], name, { type: "application/json" }); } catch (e) {}
+    function alsDownload() {
+      try {
+        const url = URL.createObjectURL(new Blob([inhalt], { type: "application/json" }));
+        const a = document.createElement("a");
+        a.href = url; a.download = name; a.style.display = "none";
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
+        zeigeMeldung(meldeEl, "Die Datei „" + name + "“ wurde geladen. Du findest sie im Ordner „Downloads“ oder in der App „Dateien“. Wenn nichts passiert ist, versuche es noch einmal in deinem Browser statt auf dem Home-Bildschirm.");
+      } catch (e) {
+        zeigeMeldung(meldeEl, "Das Sichern hat auf diesem Gerät leider nicht geklappt. Bitte frag deine Lehrkraft.");
+      }
+    }
+    if (datei && navigator.canShare && navigator.share && navigator.canShare({ files: [datei] })) {
+      navigator.share({ files: [datei], title: "Rechtschreib-Training" }).then(function () {
+        zeigeMeldung(meldeEl, "Fertig. Die Datei „" + name + "“ wurde weitergegeben.");
+      }).catch(function (err) {
+        if (err && err.name === "AbortError") { zeigeMeldung(meldeEl, "Du hast das Teilen abgebrochen. Es wurde nichts gesichert."); }
+        else { alsDownload(); }
+      });
+    } else {
+      alsDownload();
+    }
+  }
+  function zeigeSichern() {
+    const einzel = sitzung.art === "einzel" && profilVon(sitzung.code);
+    document.getElementById("sichern-ohne").hidden = !!einzel;
+    document.getElementById("sichern-schueler").hidden = !einzel;
+    document.getElementById("sichern-meldung").hidden = true;
+  }
+  auf("sichern-schueler", function () {
+    const p = profilVon(sitzung.code);
+    if (!p) return;
+    sichere("schueler", [JSON.parse(JSON.stringify(p))], dateiname("schueler", p.code), document.getElementById("sichern-meldung"));
+  });
+  auf("sichern-lehrkraft", function () {
+    sichere("lehrkraft", JSON.parse(JSON.stringify(daten.profile)), dateiname("lehrkraft", ""), document.getElementById("sichern-lehrkraft-meldung"));
+  });
+
   /* Zugang */
   document.getElementById("zugang-formular").addEventListener("submit", function (e) {
     e.preventDefault();
@@ -1653,6 +1719,7 @@ const EINZELCODES = [
   document.querySelectorAll("[data-zu='einstellungen']").forEach(function (b) {
     b.addEventListener("click", function () {
       document.getElementById("karte-code-wechseln").hidden = !sitzung.art;
+      zeigeSichern();
       zeige("ansicht-einstellungen");
     });
   });
@@ -1675,6 +1742,7 @@ const EINZELCODES = [
       document.getElementById("kennwort").value = "";
       document.getElementById("kennwort-hinweis").hidden = true;
       zeigeCodes();
+      document.getElementById("sichern-lehrkraft-meldung").hidden = true;
       zeige("ansicht-lehrkraft");
     } else {
       document.getElementById("kennwort-hinweis").hidden = false;
