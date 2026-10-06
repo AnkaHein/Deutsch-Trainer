@@ -194,6 +194,21 @@
   .kachel .bild img { width: 76px; height: 76px; object-fit: contain; display: block; }
   .kachel h3 { margin: 0; font-size: 1.05rem; line-height: 1.25; }
   .kachel .sub { font-size: .88rem; color: var(--ink-soft); }
+  .nb-liste { list-style: none; margin: 0 0 16px; padding: 0; display: grid; gap: 12px; }
+  .nb-liste li { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 16px; }
+  .nb-liste button.nb-kopf { all: unset; box-sizing: border-box; display: block; width: 100%; cursor: pointer; min-height: 48px; }
+  .nb-liste button.nb-kopf:focus-visible { outline: 3px solid var(--accent); outline-offset: 4px; border-radius: 8px; }
+  .nb-titel { font-weight: 700; font-size: 1.1rem; margin: 0 0 8px; }
+  .nb-titel small { display: block; font-weight: 400; color: var(--ink-soft); font-size: .9rem; }
+  .nb-zeile { display: grid; grid-template-columns: 4.2rem 1fr; gap: 4px 10px; align-items: center; margin: 8px 0; }
+  .nb-zeile .name { color: var(--ink-soft); }
+  .nb-zeile .zahlen { color: var(--ink-soft); font-size: .95rem; grid-column: 2; }
+  .bewertung { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 99px; font-weight: 600; border: 1px solid var(--line); background: var(--surface-2); justify-self: start; }
+  .bewertung.gut { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .bewertung.geht { background: var(--surface-2); border-color: var(--accent); }
+  .bewertung.ueben { background: var(--amber-soft); border-color: var(--amber); }
+  .bewertung.nicht { background: transparent; border-style: dashed; color: var(--ink-soft); }
+  .nb-weiter { color: var(--ink-soft); font-size: .9rem; margin: 8px 0 0; }
   .nc-liste { list-style: none; margin: 0 0 16px; padding: 0; display: grid; gap: 12px; }
   .nc-liste li { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 16px; }
   .nc-kopf { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px; margin-bottom: 10px; }
@@ -404,9 +419,23 @@
     <div class="karte">
       <h3>Auswertung</h3>
       <p class="lead">Sieh nach, welche Codes geübt haben und wie.</p>
-      <button class="btn" id="zu-nach-code" type="button">Nach Code</button>
+      <div class="zeile">
+        <button class="btn" id="zu-nach-code" type="button">Nach Code</button>
+        <button class="btn" id="zu-nach-bereich" type="button">Nach Bereich</button>
+      </div>
     </div>
     <div class="zeile"><button class="btn ghost" id="lehrkraft-verlassen" type="button">Bereich verlassen</button></div>
+  </section>
+
+  <!-- Lehrkraft: Übersicht nach Bereich -->
+  <section id="ansicht-nach-bereich" hidden>
+    <div class="uebung-kopf">
+      <button class="btn ghost small" id="nach-bereich-zurueck" type="button">Zurück</button>
+      <h2 tabindex="-1" id="nach-bereich-titel">Nach Bereich</h2>
+    </div>
+    <p class="lead" style="color:var(--ink-soft)" id="nach-bereich-lead"></p>
+    <ul class="nb-liste" id="nach-bereich-liste"></ul>
+    <div class="zeile"><button class="btn ghost" id="nach-bereich-zurueck-unten" type="button">Zurück</button></div>
   </section>
 
   <!-- Lehrkraft: Übersicht nach Code -->
@@ -424,7 +453,7 @@
 <footer>Evangelisches Schulzentrum Bad Düben &middot; <span style="white-space:nowrap">Version <span id="version"></span></span></footer>
 
 <script>
-const APP_VERSION = "1.12.0";
+const APP_VERSION = "1.13.0";
 document.getElementById("version").textContent = APP_VERSION;
 
 (function () {
@@ -1367,7 +1396,7 @@ const EINZELCODES = [
   });
 
   /* Ansichten */
-  const ANSICHTEN = ["ansicht-zugang", "ansicht-wer", "ansicht-start", "ansicht-fortschritt", "ansicht-unterthemen", "ansicht-uebung", "ansicht-einstellungen", "ansicht-kennwort", "ansicht-lehrkraft", "ansicht-nach-code"];
+  const ANSICHTEN = ["ansicht-zugang", "ansicht-wer", "ansicht-start", "ansicht-fortschritt", "ansicht-unterthemen", "ansicht-uebung", "ansicht-einstellungen", "ansicht-kennwort", "ansicht-lehrkraft", "ansicht-nach-code", "ansicht-nach-bereich"];
   function zeige(id) {
     ANSICHTEN.forEach(function (a) { document.getElementById(a).hidden = (a !== id); });
     window.scrollTo(0, 0);
@@ -1619,6 +1648,99 @@ const EINZELCODES = [
   function zurueckZurLehrkraft() { zeigeCodes(); zeige("ansicht-lehrkraft"); }
   auf("nach-code-zurueck", zurueckZurLehrkraft);
   auf("nach-code-zurueck-unten", zurueckZurLehrkraft);
+
+  /* Lehrkraft: Übersicht nach Bereich und Aufgabe */
+  /* Schwellen der Auswertung (in Prozent): hier änderbar. */
+  const SCHWELLE_GUT = 80;
+  const SCHWELLE_GEHT = 50;
+  function bewerte(schnitt) {
+    if (schnitt === null) return { klasse: "nicht", symbol: "○", text: "nicht geübt" };
+    if (schnitt >= SCHWELLE_GUT) return { klasse: "gut", symbol: "✓", text: "gut" };
+    if (schnitt >= SCHWELLE_GEHT) return { klasse: "geht", symbol: "≈", text: "geht" };
+    return { klasse: "ueben", symbol: "!", text: "noch üben" };
+  }
+  /* Sammelt die besten Ergebnisse aller Profile auf diesem Gerät für eine Menge von Schlüsseln. */
+  function sammle(schluesselListe) {
+    const kinder = {};
+    let n = 0, summe = 0;
+    daten.profile.forEach(function (p) {
+      const e = p.ergebnisse || {};
+      schluesselListe.forEach(function (k) {
+        if (e[k] && e[k].versuche > 0) { kinder[p.code] = true; n++; summe += Number(e[k].bestes) || 0; }
+      });
+    });
+    return { kinder: Object.keys(kinder).length, schnitt: n > 0 ? Math.round(summe / n) : null };
+  }
+  function bewertungsPille(schnitt) {
+    const b = bewerte(schnitt);
+    const sp = document.createElement("span"); sp.className = "bewertung " + b.klasse; sp.textContent = b.symbol + " " + b.text;
+    return sp;
+  }
+  function nbZeile(ziel, stufenName, werte) {
+    const z = document.createElement("div"); z.className = "nb-zeile";
+    const n = document.createElement("span"); n.className = "name"; n.textContent = stufenName;
+    z.appendChild(n); z.appendChild(bewertungsPille(werte.schnitt));
+    const t = document.createElement("span"); t.className = "zahlen";
+    t.textContent = werte.kinder === 0 ? "Noch kein Kind hat geübt" : werte.kinder + (werte.kinder === 1 ? " Kind" : " Kinder") + " geübt · Durchschnitt " + werte.schnitt + " %";
+    z.appendChild(t);
+    ziel.appendChild(z);
+  }
+  function blaetter() {
+    const l = [];
+    BEREICHE.forEach(function (b) {
+      if (!b.aktiv) return;
+      if (b.unterthemen) b.unterthemen.forEach(function (u) { l.push({ id: u.id, titel: u.titel, ober: b.titel }); });
+      else l.push({ id: b.id, titel: b.titel, ober: "" });
+    });
+    return l;
+  }
+  function zeigeNachBereich() {
+    document.getElementById("nach-bereich-titel").textContent = "Nach Bereich";
+    document.getElementById("nach-bereich-lead").textContent = "Stand auf diesem Gerät. Gut ab " + SCHWELLE_GUT + " %, geht ab " + SCHWELLE_GEHT + " %, darunter noch üben. Tippe auf einen Bereich, um die einzelnen Aufgaben zu sehen.";
+    const liste = document.getElementById("nach-bereich-liste");
+    liste.innerHTML = "";
+    blaetter().forEach(function (bl) {
+      const li = document.createElement("li");
+      const knopf = document.createElement("button"); knopf.type = "button"; knopf.className = "nb-kopf";
+      const t = document.createElement("p"); t.className = "nb-titel"; t.textContent = bl.titel;
+      if (bl.ober) { const sm = document.createElement("small"); sm.textContent = bl.ober; t.appendChild(sm); }
+      knopf.appendChild(t);
+      STUFEN.forEach(function (st) {
+        const ks = (AUFGABEN[bl.id] && AUFGABEN[bl.id][st] || []).map(function (a) { return bl.id + "|" + st + "|" + a.id; });
+        nbZeile(knopf, st, sammle(ks));
+      });
+      const w = document.createElement("p"); w.className = "nb-weiter"; w.textContent = "Aufgaben ansehen ›";
+      knopf.appendChild(w);
+      knopf.addEventListener("click", function () { zeigeNachAufgabe(bl); });
+      li.appendChild(knopf); liste.appendChild(li);
+    });
+    nbAnsicht = "uebersicht";
+  }
+  let nbAnsicht = "uebersicht";
+  function zeigeNachAufgabe(bl) {
+    document.getElementById("nach-bereich-titel").textContent = bl.titel;
+    document.getElementById("nach-bereich-lead").textContent = "Jede Aufgabe einzeln. Der Durchschnitt zählt das beste Ergebnis jedes Kindes.";
+    const liste = document.getElementById("nach-bereich-liste");
+    liste.innerHTML = "";
+    STUFEN.forEach(function (st) {
+      const li = document.createElement("li");
+      const t = document.createElement("p"); t.className = "nb-titel"; t.textContent = "Stufe " + st; li.appendChild(t);
+      (AUFGABEN[bl.id] && AUFGABEN[bl.id][st] || []).forEach(function (a, i) {
+        nbZeile(li, "Nr. " + (i + 1), sammle([bl.id + "|" + st + "|" + a.id]));
+      });
+      liste.appendChild(li);
+    });
+    nbAnsicht = "aufgaben";
+    window.scrollTo(0, 0);
+    document.getElementById("nach-bereich-titel").focus({ preventScroll: true });
+  }
+  auf("zu-nach-bereich", function () { zeigeNachBereich(); zeige("ansicht-nach-bereich"); });
+  function nbZurueck() {
+    if (nbAnsicht === "aufgaben") { zeigeNachBereich(); window.scrollTo(0, 0); }
+    else { zurueckZurLehrkraft(); }
+  }
+  auf("nach-bereich-zurueck", nbZurueck);
+  auf("nach-bereich-zurueck-unten", nbZurueck);
 
   function zeigeCodes() {
     document.getElementById("code-gemeinsam").textContent = GEMEINSAMER_CODE;
