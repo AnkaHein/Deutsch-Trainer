@@ -239,6 +239,9 @@
   .bewertung.ueben { background: var(--amber-soft); border-color: var(--amber); }
   .bewertung.nicht { background: transparent; border-style: dashed; color: var(--ink-soft); }
   .nb-weiter { color: var(--ink-soft); font-size: .9rem; margin: 8px 0 0; }
+  .laden-liste { list-style: none; margin: 14px 0 0; padding: 0; display: grid; gap: 6px; overflow-wrap: anywhere; }
+  .laden-zahl { font-weight: 700; margin: 12px 0; }
+  #laden-vorschau .zeile, #laden-vorschau .notiz { margin-top: 12px; }
   .nc-liste { list-style: none; margin: 0 0 16px; padding: 0; display: grid; gap: 12px; }
   .nc-liste li { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 16px; }
   .nc-kopf { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px; margin-bottom: 10px; }
@@ -432,6 +435,13 @@
       <button class="btn" id="sichern-schueler" type="button" hidden>Daten sichern</button>
       <p class="hinweis" id="sichern-meldung" role="status" hidden></p>
     </div>
+    <div class="karte" id="karte-laden">
+      <h3>Daten laden</h3>
+      <p class="lead">Lade eine gesicherte Datei, zum Beispiel auf einem neuen Gerät. Mehrere Dateien auf einmal sind möglich. Vorhandene Daten bleiben erhalten, für jede Aufgabe gilt das bessere Ergebnis.</p>
+      <input type="file" id="laden-datei" accept=".json,application/json" multiple hidden>
+      <button class="btn" id="laden-waehlen" type="button">Datei auswählen</button>
+      <div id="laden-vorschau" aria-live="polite"></div>
+    </div>
     <div class="karte" id="karte-code-wechseln" hidden>
       <h3>Code</h3>
       <p class="lead">Wechsle zu einem anderen Code oder melde dich ab.</p>
@@ -517,7 +527,7 @@
 <footer>Evangelisches Schulzentrum Bad Düben &middot; <span style="white-space:nowrap">Version <span id="version"></span></span></footer>
 
 <script>
-const APP_VERSION = "1.15.0";
+const APP_VERSION = "1.16.0";
 document.getElementById("version").textContent = APP_VERSION;
 
 (function () {
@@ -680,6 +690,7 @@ const EINZELCODES = [
   const STUFEN = ["leicht", "mittel", "schwer"];
   let stufe = "leicht";   // Beim ersten Start "leicht". Nur bei Einzelcodes wird die Wahl im Profil gemerkt.
 
+  function bekannteProfile() { return daten.profile.filter(function (p) { return findeEinzel(p.code); }); }
   function profilVon(code) { return daten.profile.find(function (p) { return p.code === code; }) || null; }
   function ladeStufe() {
     stufe = "leicht";
@@ -1502,7 +1513,7 @@ const EINZELCODES = [
 
   function zeigeHaupt() {
     if (sitzung.art) { zeigeStart(); }
-    else if (daten.profile.length > 0) { zeigeWer(); }
+    else if (bekannteProfile().length > 0) { zeigeWer(); }
     else { zeigeZugang(); }
   }
   function zeigeZugang() {
@@ -1513,7 +1524,7 @@ const EINZELCODES = [
   function zeigeWer() {
     const liste = document.getElementById("wer-liste");
     liste.innerHTML = "";
-    daten.profile.forEach(function (p) {
+    bekannteProfile().forEach(function (p) {
       const li = document.createElement("li");
       const b = document.createElement("button");
       b.type = "button"; b.className = "btn ghost code"; b.textContent = schoen(p.code);
@@ -1550,7 +1561,7 @@ const EINZELCODES = [
     sitzungsErgebnisse = {};
     sitzung.art = null; sitzung.code = null;
     if (daten.aktuellerCode) { daten.aktuellerCode = ""; speichere(); }
-    if (daten.profile.length > 0) { zeigeWer(); } else { zeigeZugang(); }
+    if (bekannteProfile().length > 0) { zeigeWer(); } else { zeigeZugang(); }
   }
 
   /* Mein Fortschritt */
@@ -1691,6 +1702,149 @@ const EINZELCODES = [
     sichere("lehrkraft", JSON.parse(JSON.stringify(daten.profile)), dateiname("lehrkraft", ""), document.getElementById("sichern-lehrkraft-meldung"));
   });
 
+  /* Daten laden (Import) und Zusammenführen, Regeln nach Bauplan A6 */
+  const MAX_DATEI = 2 * 1024 * 1024;
+  const KEIN_GUELTIGES_PROFIL = "Diese Datei gehört nicht zum Rechtschreib-Training. Es wurde nichts geändert.";
+  function reinigeProfil(roh) {
+    if (!roh || typeof roh !== "object" || typeof roh.code !== "string") return null;
+    const n = normal(roh.code);
+    if (n.length !== 6) return null;
+    const datum = /^\d{4}-\d{2}-\d{2}$/;
+    const erg = {};
+    const quelle = roh.ergebnisse && typeof roh.ergebnisse === "object" ? roh.ergebnisse : {};
+    Object.keys(quelle).forEach(function (k) {
+      const r = quelle[k];
+      if (k.split("|").length !== 3 || !r || typeof r !== "object") return;
+      const bestes = Number(r.bestes), versuche = Number(r.versuche);
+      if (!isFinite(bestes) || !isFinite(versuche)) return;
+      erg[k] = {
+        bestes: Math.max(0, Math.min(100, Math.round(bestes))),
+        versuche: Math.max(0, Math.min(100000, Math.round(versuche))),
+        zuletzt: typeof r.zuletzt === "string" && datum.test(r.zuletzt) ? r.zuletzt : ""
+      };
+    });
+    const tage = (Array.isArray(roh.tage) ? roh.tage : []).filter(function (t) { return typeof t === "string" && datum.test(t); });
+    return {
+      code: schoen(n),
+      angelegt: typeof roh.angelegt === "string" && datum.test(roh.angelegt) ? roh.angelegt : heute(),
+      stufe: STUFEN.indexOf(roh.stufe) >= 0 ? roh.stufe : "leicht",
+      tage: tage, ergebnisse: erg
+    };
+  }
+  /* Prüft eine gelesene Datei. Gibt { art, profile } zurück oder wirft einen Text mit verständlichem Grund. */
+  function pruefeImport(text) {
+    let d;
+    try { d = JSON.parse(text); } catch (e) { throw KEIN_GUELTIGES_PROFIL; }
+    if (!d || typeof d !== "object" || d.app !== SPEICHER_SCHLUESSEL || (d.art !== "schueler" && d.art !== "lehrkraft") || !Array.isArray(d.profile)) throw KEIN_GUELTIGES_PROFIL;
+    if (d.schema !== SCHEMA) throw "Diese Datei stammt aus einer anderen Version der App. Bitte aktualisiere die App und versuche es noch einmal.";
+    const profile = d.profile.map(reinigeProfil).filter(Boolean);
+    if (profile.length === 0) throw "In dieser Datei steht kein Fortschritt zum Laden.";
+    return { art: d.art, profile: profile };
+  }
+  function fuehreZusammen(ziel, quelle) {
+    /* Zusammenführen: pro Aufgabe der bessere Wert, Tage vereinigen. Zweimal laden ändert nichts. */
+    Object.keys(quelle.ergebnisse).forEach(function (k) {
+      const q = quelle.ergebnisse[k], z = ziel.ergebnisse[k];
+      if (!z) { ziel.ergebnisse[k] = { bestes: q.bestes, versuche: q.versuche, zuletzt: q.zuletzt }; return; }
+      z.bestes = Math.max(Number(z.bestes) || 0, q.bestes);
+      z.versuche = Math.max(Number(z.versuche) || 0, q.versuche);
+      if (q.zuletzt && (!z.zuletzt || q.zuletzt > z.zuletzt)) z.zuletzt = q.zuletzt;
+    });
+    const tage = {};
+    (Array.isArray(ziel.tage) ? ziel.tage : []).concat(quelle.tage).forEach(function (t) { tage[t] = true; });
+    ziel.tage = Object.keys(tage).sort();
+    if (quelle.angelegt && (!ziel.angelegt || quelle.angelegt < ziel.angelegt)) ziel.angelegt = quelle.angelegt;
+  }
+  function uebernimm(listen) {
+    let neu = 0, zusammen = 0;
+    listen.forEach(function (profile) {
+      profile.forEach(function (q) {
+        let ziel = profilVon(q.code);
+        if (!ziel) {
+          ziel = { code: q.code, angelegt: q.angelegt, stufe: q.stufe, tage: [], ergebnisse: {} };
+          daten.profile.push(ziel); neu++;
+        } else { zusammen++; }
+        if (!ziel.ergebnisse) ziel.ergebnisse = {};
+        fuehreZusammen(ziel, q);
+      });
+    });
+    speichere();
+    return { neu: neu, zusammen: zusammen };
+  }
+  function ladenVorschau(gelesen) {
+    const box = document.getElementById("laden-vorschau");
+    box.innerHTML = "";
+    const gut = gelesen.filter(function (g) { return g.ok; });
+    const codes = {};
+    gut.forEach(function (g) { g.ok.profile.forEach(function (p) { codes[p.code] = true; }); });
+    const liste = document.createElement("ul"); liste.className = "laden-liste";
+    gelesen.forEach(function (g) {
+      const li = document.createElement("li");
+      li.textContent = g.ok
+        ? "✓ " + g.name + ": " + g.ok.profile.length + (g.ok.profile.length === 1 ? " Profil" : " Profile")
+        : "○ " + g.name + ": " + g.fehler;
+      liste.appendChild(li);
+    });
+    box.appendChild(liste);
+    if (gut.length === 0) {
+      const h = document.createElement("p"); h.className = "hinweis"; h.textContent = "Es konnte nichts geladen werden. Es wurde nichts geändert."; box.appendChild(h);
+      return;
+    }
+    const anzahl = Object.keys(codes).length;
+    const t = document.createElement("p"); t.className = "laden-zahl";
+    t.textContent = anzahl + (anzahl === 1 ? " Profil gefunden" : " Profile gefunden");
+    box.appendChild(t);
+    const unbekannt = Object.keys(codes).filter(function (c) { return !findeEinzel(c); }).length;
+    if (unbekannt > 0) {
+      const u = document.createElement("p"); u.className = "notiz";
+      u.textContent = unbekannt + (unbekannt === 1 ? " Code steht" : " Codes stehen") + " nicht in der Liste dieser App. " + (unbekannt === 1 ? "Er erscheint" : "Sie erscheinen") + " im Lehrkraft-Bereich als „unbekannt“.";
+      box.appendChild(u);
+    }
+    const mehrere = gut.some(function (g) { return g.ok.art === "lehrkraft"; });
+    const aktion = document.createElement("div"); box.appendChild(aktion);
+    function laden() {
+      const r = uebernimm(gut.map(function (g) { return g.ok.profile; }));
+      box.innerHTML = "";
+      const m = document.createElement("p"); m.className = "notiz"; m.setAttribute("role", "status");
+      m.textContent = "Fertig. " + r.neu + " neu geladen, " + r.zusammen + " mit vorhandenen Daten zusammengeführt. Es ist nichts verloren gegangen.";
+      box.appendChild(m);
+      document.getElementById("laden-datei").value = "";
+    }
+    function abbrechen() { box.innerHTML = ""; document.getElementById("laden-datei").value = ""; }
+    if (mehrere) {
+      const frage = document.createElement("div"); frage.className = "fs-frage"; frage.setAttribute("role", "alertdialog");
+      const p = document.createElement("p");
+      p.textContent = "Diese Datei enthält die Profile mehrerer Codes. Sie werden mit den Daten auf diesem Gerät zusammengeführt, vorhandene Ergebnisse werden nur besser, nie schlechter. Möchtest du das?";
+      const z = document.createElement("div"); z.className = "zeile";
+      const ja = document.createElement("button"); ja.type = "button"; ja.className = "btn"; ja.textContent = "Ja, laden"; ja.addEventListener("click", laden);
+      const nein = document.createElement("button"); nein.type = "button"; nein.className = "btn ghost"; nein.textContent = "Abbrechen"; nein.addEventListener("click", abbrechen);
+      z.appendChild(ja); z.appendChild(nein); frage.appendChild(p); frage.appendChild(z); aktion.appendChild(frage);
+    } else {
+      const z = document.createElement("div"); z.className = "zeile";
+      const ja = document.createElement("button"); ja.type = "button"; ja.className = "btn"; ja.textContent = "Jetzt laden"; ja.addEventListener("click", laden);
+      const nein = document.createElement("button"); nein.type = "button"; nein.className = "btn ghost"; nein.textContent = "Abbrechen"; nein.addEventListener("click", abbrechen);
+      z.appendChild(ja); z.appendChild(nein); aktion.appendChild(z);
+    }
+  }
+  function leseDatei(f) {
+    return new Promise(function (ok) {
+      if (f.size > MAX_DATEI) { ok({ name: f.name, fehler: "Die Datei ist zu groß. Es wurde nichts geändert." }); return; }
+      const r = new FileReader();
+      r.onerror = function () { ok({ name: f.name, fehler: "Die Datei konnte nicht gelesen werden." }); };
+      r.onload = function () {
+        try { ok({ name: f.name, ok: pruefeImport(String(r.result)) }); }
+        catch (grund) { ok({ name: f.name, fehler: typeof grund === "string" ? grund : KEIN_GUELTIGES_PROFIL }); }
+      };
+      r.readAsText(f);
+    });
+  }
+  auf("laden-waehlen", function () { document.getElementById("laden-vorschau").innerHTML = ""; document.getElementById("laden-datei").click(); });
+  document.getElementById("laden-datei").addEventListener("change", function (e) {
+    const dateien = Array.prototype.slice.call(e.target.files || []);
+    if (dateien.length === 0) return;
+    Promise.all(dateien.map(leseDatei)).then(ladenVorschau);
+  });
+
   /* Zugang */
   document.getElementById("zugang-formular").addEventListener("submit", function (e) {
     e.preventDefault();
@@ -1720,6 +1874,7 @@ const EINZELCODES = [
     b.addEventListener("click", function () {
       document.getElementById("karte-code-wechseln").hidden = !sitzung.art;
       zeigeSichern();
+      document.getElementById("laden-vorschau").innerHTML = "";
       zeige("ansicht-einstellungen");
     });
   });
