@@ -1,4 +1,4 @@
-const VERSION = "1.18.1";
+const VERSION = "1.18.2";
 const CACHE = "rechtschreib-training-" + VERSION;
 const DATEIEN = ["./", "./index.html", "./sw.js", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png"];
 
