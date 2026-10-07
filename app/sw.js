@@ -1,6 +1,6 @@
-const VERSION = "1.18.2";
+const VERSION = "1.18.3";
 const CACHE = "rechtschreib-training-" + VERSION;
-const DATEIEN = ["./", "./index.html", "./sw.js", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png"];
+const DATEIEN = ["./", "./index.html", "./sw.js", "./manifest.webmanifest", "./symbol-app-192.png", "./symbol-app-512.png"];
 
 self.addEventListener("install", function (e) {
   e.waitUntil(caches.open(CACHE).then(function (c) { return c.addAll(DATEIEN); }));
