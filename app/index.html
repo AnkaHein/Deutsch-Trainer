@@ -44,10 +44,12 @@
     --line: #2f4d45; --accent: #00856f; --accent-strong: #52d4b9; --accent-deep: #a6e6d8;
     --accent-ink: #ffffff; --accent-soft: #24493f; --amber: #f0a63a; --amber-soft: #3b2d10;
     }
-    :root[data-modus="auto"] .hero .banner, :root[data-modus="auto"] .willkommen { filter: brightness(.6); }
+    :root[data-modus="auto"] .hero .banner { filter: brightness(.6); }
+    :root[data-modus="auto"] .willkommen { mix-blend-mode: normal; background: #fff; border-radius: 22px; }
     :root[data-modus="auto"] .logo-plate { background: #fff; }
   }
-  :root[data-modus="dunkel"] .hero .banner, :root[data-modus="dunkel"] .willkommen { filter: brightness(.6); }
+  :root[data-modus="dunkel"] .hero .banner { filter: brightness(.6); }
+  :root[data-modus="dunkel"] .willkommen { mix-blend-mode: normal; background: #fff; border-radius: 22px; }
   :root[data-modus="dunkel"] .logo-plate { background: #fff; }
   /* Lesehilfen: Schriftgröße über die Grundgröße, Zeilenabstand über Variablen. */
   :root { --zeile: 1.5; --zeile-text: 1.6; --tipp: #9cc7bb; }
@@ -582,7 +584,7 @@
 <footer>Evangelisches Schulzentrum Bad Düben &middot; <span style="white-space:nowrap">Version <span id="version"></span></span></footer>
 
 <script>
-const APP_VERSION = "1.18.3";
+const APP_VERSION = "1.18.4";
 document.getElementById("version").textContent = APP_VERSION;
 
 (function () {
