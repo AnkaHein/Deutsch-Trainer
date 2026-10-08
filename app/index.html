@@ -318,6 +318,19 @@
     .willkommen { max-width: 260px; order: -1; }
   }
 
+  /* Spiele */
+  .spiele-eingang { margin: 20px 0 0; }
+  .spiele-eingang + .kacheln { margin-top: 16px; }
+  @media (max-width: 380px) { #fach-schalter button { font-size: .9rem; padding-inline: 6px; } }
+  .spiele-eingang .kachel { border-style: dashed; }
+  .kachel .bild svg { width: 60px; height: 60px; display: block; }
+  .kachel .gespielt { grid-column: 2; justify-self: start; font-size: .8rem; background: var(--accent-soft); color: var(--accent-deep); border-radius: 99px; padding: 2px 12px; }
+  .hinweis.ok { background: var(--accent-soft); border-left-color: var(--accent); }
+  .hinweis.bleibt { border-left-style: dashed; }
+  .spiel-flaeche { margin: 0 0 12px; }
+  .spiel-flaeche:empty { display: none; }
+  #spiel-aktionen:empty { display: none; }
+
   footer { padding: 14px 16px 18px; font-size: .9rem; text-align: center; color: var(--ink-soft); }
 
   @media (max-width: 420px) {
@@ -398,7 +411,41 @@
       </div>
     </div>
     <p class="hinweis" id="stufen-hinweis" role="status" hidden></p>
+    <ul class="kacheln spiele-eingang" id="spiele-eingang"></ul>
     <ul class="kacheln" id="kacheln"></ul>
+  </section>
+
+  <!-- Spieleübersicht -->
+  <section id="ansicht-spiele" hidden>
+    <div class="uebung-kopf">
+      <button class="btn ghost small" id="spiele-zurueck" type="button">Zurück</button>
+      <h2 tabindex="-1" id="spiele-titel">Spiele</h2>
+      <span class="pille" id="spiele-stufe"></span>
+    </div>
+    <p class="lead" style="color:var(--ink-soft)">Hier kannst du spielen und dabei üben. Es gibt keine Zeit und keine Strafpunkte. Die Stufe wählst du auf der Startseite.</p>
+    <ul class="kacheln" id="spiele-liste"></ul>
+  </section>
+
+  <!-- Spielrahmen (für alle Spiele gleich) -->
+  <section id="ansicht-spiel" hidden>
+    <div class="uebung-kopf">
+      <button class="btn ghost small" id="spiel-zurueck" type="button">Zurück</button>
+      <h2 tabindex="-1" id="spiel-titel"></h2>
+      <span class="pille" id="spiel-stufe"></span>
+    </div>
+    <p class="aufgabe" id="spiel-aufgabe"></p>
+    <div class="spiel-flaeche" id="spiel-flaeche"></div>
+    <p class="hinweis" id="spiel-hinweis" role="status" hidden></p>
+    <div class="zeile" id="spiel-aktionen"></div>
+    <div class="karte ergebnis" id="spiel-ende" role="status" hidden>
+      <span class="rund mittel"><img data-asset="rueckmeldung-geschafft" alt="" width="72" height="72"></span>
+      <strong>Geschafft!</strong>
+      <p id="spiel-ende-text" style="margin:0 0 10px"></p>
+      <div class="zeile">
+        <button class="btn" id="spiel-nochmal" type="button">Noch einmal spielen</button>
+        <button class="btn ghost" id="spiel-zur-uebersicht" type="button">Zur Spieleübersicht</button>
+      </div>
+    </div>
   </section>
 
   <!-- Mein Fortschritt -->
@@ -584,7 +631,7 @@
 <footer>Evangelisches Schulzentrum Bad Düben &middot; <span style="white-space:nowrap">Version <span id="version"></span></span></footer>
 
 <script>
-const APP_VERSION = "2.0.0";
+const APP_VERSION = "2.1.0";
 document.getElementById("version").textContent = APP_VERSION;
 
 (function () {
@@ -1932,8 +1979,572 @@ const EINZELCODES = [
     document.getElementById("stufen-hinweis").hidden = true;
   });
 
+  /* Spiele (Erweiterung, ab Version 2.1.0).
+     Jedes Spiel meldet sich mit SPIEL_MODULE[id] = { start: function (rahmen) { ... } } an und setzt "aktiv: true" in SPIELE.
+     Der Rahmen kümmert sich um Titel, Stufe, Rückmeldung, Ende-Bildschirm und Speichern. */
+  const SPIELE = [
+    { id: "buchstabensalat", titel: "Buchstabensalat", sub: "Ordne die Buchstaben zu einem Wort", glyph: "ABC", aktiv: false },
+    { id: "wortschlange", titel: "Wortschlange", sub: "Finde Wörter im Buchstabengitter", glyph: "S~", aktiv: false },
+    { id: "sortier-schreibung", titel: "Sortieren: Schreibung", sub: "Sortiere Wörter in die richtige Kiste", glyph: "ie | i", aktiv: false },
+    { id: "sortier-wortarten", titel: "Sortieren: Wortarten und Satzglieder", sub: "Sortiere Wörter und Satzteile", glyph: "N V A", aktiv: false },
+    { id: "fehlerdetektiv", titel: "Fehlerdetektiv", sub: "Finde die Fehler und löse den Fall", glyph: "?!", aktiv: false },
+    { id: "fliessband", titel: "Satzzeichen-Fließband", sub: "Setze die passenden Satzzeichen", glyph: ". , ! ?", aktiv: false },
+    { id: "satzpuzzle", titel: "Satzpuzzle", sub: "Baue Sätze aus Teilen zusammen", glyph: "S P", aktiv: false },
+    { id: "wer-bin-ich", titel: "Wer bin ich?", sub: "Rate das Wort aus den Hinweisen", glyph: "Wer?", aktiv: false },
+    { id: "lueckenkrimi", titel: "Lückenkrimi", sub: "Fülle die Lücken und löse das Rätsel", glyph: "___", aktiv: false },
+    { id: "textdetektiv", titel: "Textdetektiv", sub: "Suche im Text nach Spuren", glyph: "Text", aktiv: false },
+    { id: "quizleiter", titel: "Quizleiter", sub: "Beantworte Fragen, nutze Joker", glyph: "Quiz", aktiv: false },
+    { id: "wort-des-tages", titel: "Wort des Tages", sub: "Ein Wort, ein Rätsel, jeden Tag", glyph: "1", aktiv: false },
+    { id: "sudoku", titel: "Sudoku", sub: "Zahlenrätsel zum Entspannen", glyph: "9", aktiv: false }
+  ];
+  const SPIEL_MODULE = {};
+  /* Wortliste für mehrere Spiele: Lernwörter (nach Regel) und Merkwörter (Ausnahmen), je Stufe. */
+  const WORTLISTE = {
+   "leicht": {
+    "lern": [
+     {
+      "id": "w-l-l-01",
+      "w": "Haus"
+     },
+     {
+      "id": "w-l-l-02",
+      "w": "Baum"
+     },
+     {
+      "id": "w-l-l-03",
+      "w": "Hund"
+     },
+     {
+      "id": "w-l-l-04",
+      "w": "Katze"
+     },
+     {
+      "id": "w-l-l-05",
+      "w": "Tisch"
+     },
+     {
+      "id": "w-l-l-06",
+      "w": "Buch"
+     },
+     {
+      "id": "w-l-l-07",
+      "w": "Ball"
+     },
+     {
+      "id": "w-l-l-08",
+      "w": "Brot"
+     },
+     {
+      "id": "w-l-l-09",
+      "w": "Fisch"
+     },
+     {
+      "id": "w-l-l-10",
+      "w": "Milch"
+     },
+     {
+      "id": "w-l-l-11",
+      "w": "Lampe"
+     },
+     {
+      "id": "w-l-l-12",
+      "w": "Sonne"
+     },
+     {
+      "id": "w-l-l-13",
+      "w": "Mond"
+     },
+     {
+      "id": "w-l-l-14",
+      "w": "Blume"
+     },
+     {
+      "id": "w-l-l-15",
+      "w": "Apfel"
+     },
+     {
+      "id": "w-l-l-16",
+      "w": "Wald"
+     },
+     {
+      "id": "w-l-l-17",
+      "w": "Stern"
+     },
+     {
+      "id": "w-l-l-18",
+      "w": "Tiger"
+     },
+     {
+      "id": "w-l-l-19",
+      "w": "Wolke"
+     },
+     {
+      "id": "w-l-l-20",
+      "w": "Wiese"
+     }
+    ],
+    "merk": [
+     {
+      "id": "w-l-m-01",
+      "w": "Vater"
+     },
+     {
+      "id": "w-l-m-02",
+      "w": "Vogel"
+     },
+     {
+      "id": "w-l-m-03",
+      "w": "viel"
+     },
+     {
+      "id": "w-l-m-04",
+      "w": "Bahn"
+     },
+     {
+      "id": "w-l-m-05",
+      "w": "Zahl"
+     },
+     {
+      "id": "w-l-m-06",
+      "w": "Mehl"
+     },
+     {
+      "id": "w-l-m-07",
+      "w": "Sohn"
+     },
+     {
+      "id": "w-l-m-08",
+      "w": "Huhn"
+     },
+     {
+      "id": "w-l-m-09",
+      "w": "Zahn"
+     },
+     {
+      "id": "w-l-m-10",
+      "w": "Bohne"
+     },
+     {
+      "id": "w-l-m-11",
+      "w": "Biene"
+     },
+     {
+      "id": "w-l-m-12",
+      "w": "Stuhl"
+     }
+    ]
+   },
+   "mittel": {
+    "lern": [
+     {
+      "id": "w-m-l-01",
+      "w": "Schule"
+     },
+     {
+      "id": "w-m-l-02",
+      "w": "Fenster"
+     },
+     {
+      "id": "w-m-l-03",
+      "w": "Garten"
+     },
+     {
+      "id": "w-m-l-04",
+      "w": "Mutter"
+     },
+     {
+      "id": "w-m-l-05",
+      "w": "Bruder"
+     },
+     {
+      "id": "w-m-l-06",
+      "w": "Zimmer"
+     },
+     {
+      "id": "w-m-l-07",
+      "w": "Straße"
+     },
+     {
+      "id": "w-m-l-08",
+      "w": "Wasser"
+     },
+     {
+      "id": "w-m-l-09",
+      "w": "Sommer"
+     },
+     {
+      "id": "w-m-l-10",
+      "w": "Winter"
+     },
+     {
+      "id": "w-m-l-11",
+      "w": "Herbst"
+     },
+     {
+      "id": "w-m-l-12",
+      "w": "Frühling"
+     },
+     {
+      "id": "w-m-l-13",
+      "w": "Kinder"
+     },
+     {
+      "id": "w-m-l-14",
+      "w": "Papier"
+     },
+     {
+      "id": "w-m-l-15",
+      "w": "Hamster"
+     },
+     {
+      "id": "w-m-l-16",
+      "w": "Wetter"
+     },
+     {
+      "id": "w-m-l-17",
+      "w": "Fahrrad"
+     },
+     {
+      "id": "w-m-l-18",
+      "w": "Tasche"
+     },
+     {
+      "id": "w-m-l-19",
+      "w": "Banane"
+     },
+     {
+      "id": "w-m-l-20",
+      "w": "Kuchen"
+     }
+    ],
+    "merk": [
+     {
+      "id": "w-m-m-01",
+      "w": "Fehler"
+     },
+     {
+      "id": "w-m-m-02",
+      "w": "Wohnung"
+     },
+     {
+      "id": "w-m-m-03",
+      "w": "Mahlzeit"
+     },
+     {
+      "id": "w-m-m-04",
+      "w": "Bahnhof"
+     },
+     {
+      "id": "w-m-m-05",
+      "w": "Zahnarzt"
+     },
+     {
+      "id": "w-m-m-06",
+      "w": "Nahrung"
+     },
+     {
+      "id": "w-m-m-07",
+      "w": "Ohrring"
+     },
+     {
+      "id": "w-m-m-08",
+      "w": "Fieber"
+     },
+     {
+      "id": "w-m-m-09",
+      "w": "Lehrerin"
+     },
+     {
+      "id": "w-m-m-10",
+      "w": "Zeitung"
+     },
+     {
+      "id": "w-m-m-11",
+      "w": "Schiene"
+     },
+     {
+      "id": "w-m-m-12",
+      "w": "Fahrer"
+     }
+    ]
+   },
+   "schwer": {
+    "lern": [
+     {
+      "id": "w-s-l-01",
+      "w": "Schwimmbad"
+     },
+     {
+      "id": "w-s-l-02",
+      "w": "Kartoffel"
+     },
+     {
+      "id": "w-s-l-03",
+      "w": "Geschwister"
+     },
+     {
+      "id": "w-s-l-04",
+      "w": "Geburtstag"
+     },
+     {
+      "id": "w-s-l-05",
+      "w": "Frühstück"
+     },
+     {
+      "id": "w-s-l-06",
+      "w": "Kaninchen"
+     },
+     {
+      "id": "w-s-l-07",
+      "w": "Zeitschrift"
+     },
+     {
+      "id": "w-s-l-08",
+      "w": "Hausaufgabe"
+     },
+     {
+      "id": "w-s-l-09",
+      "w": "Spielplatz"
+     },
+     {
+      "id": "w-s-l-10",
+      "w": "Schmetterling"
+     },
+     {
+      "id": "w-s-l-11",
+      "w": "Kindergarten"
+     },
+     {
+      "id": "w-s-l-12",
+      "w": "Fernseher"
+     },
+     {
+      "id": "w-s-l-13",
+      "w": "Bücherei"
+     },
+     {
+      "id": "w-s-l-14",
+      "w": "Wanderung"
+     },
+     {
+      "id": "w-s-l-15",
+      "w": "Wohnzimmer"
+     },
+     {
+      "id": "w-s-l-16",
+      "w": "Zahnbürste"
+     },
+     {
+      "id": "w-s-l-17",
+      "w": "Straßenbahn"
+     },
+     {
+      "id": "w-s-l-18",
+      "w": "Schlüssel"
+     },
+     {
+      "id": "w-s-l-19",
+      "w": "Mittagessen"
+     },
+     {
+      "id": "w-s-l-20",
+      "w": "Krankenhaus"
+     }
+    ],
+    "merk": [
+     {
+      "id": "w-s-m-01",
+      "w": "Rhythmus"
+     },
+     {
+      "id": "w-s-m-02",
+      "w": "Mohrrübe"
+     },
+     {
+      "id": "w-s-m-03",
+      "w": "Fahrstuhl"
+     },
+     {
+      "id": "w-s-m-04",
+      "w": "Schifffahrt"
+     },
+     {
+      "id": "w-s-m-05",
+      "w": "Stoppuhr"
+     },
+     {
+      "id": "w-s-m-06",
+      "w": "Wahrheit"
+     },
+     {
+      "id": "w-s-m-07",
+      "w": "Verantwortung"
+     },
+     {
+      "id": "w-s-m-08",
+      "w": "Lebensmittel"
+     },
+     {
+      "id": "w-s-m-09",
+      "w": "Vorfahrt"
+     },
+     {
+      "id": "w-s-m-10",
+      "w": "Entschuldigung"
+     },
+     {
+      "id": "w-s-m-11",
+      "w": "Ernährung"
+     },
+     {
+      "id": "w-s-m-12",
+      "w": "Überraschung"
+     }
+    ]
+   }
+  };
+
+  /* Spielstand: Mit Einzelcode im Profil (p.spiele), mit dem gemeinsamen Code nur im Arbeitsspeicher. Schlüssel: <spiel-id>|<stufe>. */
+  let sitzungsSpiele = {};
+  function spieleDaten() {
+    if (sitzung.art === "einzel") {
+      const p = profilVon(sitzung.code);
+      if (p) { if (!p.spiele || typeof p.spiele !== "object") p.spiele = {}; return p.spiele; }
+    }
+    return sitzungsSpiele;
+  }
+  function merkeSpiel(id, prozent) {
+    const sd = spieleDaten(), k = id + "|" + stufe, alt = sd[k];
+    sd[k] = { runden: (alt ? alt.runden : 0) + 1, beste: alt ? Math.max(alt.beste, prozent) : prozent, zuletzt: heute() };
+    if (sitzung.art === "einzel") speichere();
+  }
+  function spielGespielt(id) {
+    const sd = spieleDaten();
+    return STUFEN.some(function (st) { const r = sd[id + "|" + st]; return r && r.runden > 0; });
+  }
+  function wuerfelSymbol() {
+    const NS = "http://www.w3.org/2000/svg";
+    const svg = document.createElementNS(NS, "svg");
+    svg.setAttribute("viewBox", "0 0 64 64"); svg.setAttribute("aria-hidden", "true");
+    const r = document.createElementNS(NS, "rect");
+    r.setAttribute("x", "8"); r.setAttribute("y", "8"); r.setAttribute("width", "48"); r.setAttribute("height", "48"); r.setAttribute("rx", "11");
+    r.setAttribute("fill", "#e6f5f1"); r.setAttribute("stroke", "#00967c"); r.setAttribute("stroke-width", "3");
+    svg.appendChild(r);
+    [[20, 20], [44, 20], [32, 32], [20, 44], [44, 44]].forEach(function (p) {
+      const c = document.createElementNS(NS, "circle");
+      c.setAttribute("cx", p[0]); c.setAttribute("cy", p[1]); c.setAttribute("r", "4.5"); c.setAttribute("fill", "#00967c");
+      svg.appendChild(c);
+    });
+    return svg;
+  }
+  function bildFuerSpiel(sp, bild) {
+    if (typeof ASSETS !== "undefined" && ASSETS["symbol-spiel-" + sp]) {
+      const img = document.createElement("img"); img.alt = ""; img.width = 76; img.height = 76;
+      img.setAttribute("data-asset", "symbol-spiel-" + sp); bild.appendChild(img); return true;
+    }
+    return false;
+  }
+  function zeichneSpieleEingang() {
+    const liste = document.getElementById("spiele-eingang");
+    liste.innerHTML = "";
+    const li = document.createElement("li");
+    const karte = document.createElement("button"); karte.type = "button"; karte.className = "kachel";
+    const bild = document.createElement("span"); bild.className = "bild";
+    if (!bildFuerSpiel("spiele", bild)) bild.appendChild(wuerfelSymbol());
+    const h = document.createElement("h3"); h.textContent = "Spiele";
+    const sub = document.createElement("span"); sub.className = "sub"; sub.textContent = "Rätsel und Spiele zum Üben";
+    karte.setAttribute("aria-label", "Spiele, Rätsel und Spiele zum Üben");
+    karte.appendChild(bild); karte.appendChild(h); karte.appendChild(sub);
+    karte.addEventListener("click", zeigeSpiele);
+    li.appendChild(karte); liste.appendChild(li);
+    if (typeof ladeBilder === "function") ladeBilder(liste);
+  }
+  function zeigeSpiele() {
+    document.getElementById("spiele-stufe").textContent = stufe;
+    const liste = document.getElementById("spiele-liste");
+    liste.innerHTML = "";
+    SPIELE.forEach(function (sp) {
+      const li = document.createElement("li");
+      const bereit = sp.aktiv && SPIEL_MODULE[sp.id];
+      const karte = document.createElement(bereit ? "button" : "div");
+      karte.className = "kachel";
+      if (bereit) karte.type = "button";
+      const bild = document.createElement("span"); bild.className = "bild";
+      if (!bildFuerSpiel(sp.id, bild)) {
+        const gl = document.createElement("span"); gl.className = "glyph"; gl.setAttribute("aria-hidden", "true"); gl.textContent = sp.glyph; bild.appendChild(gl);
+      }
+      const h = document.createElement("h3"); h.textContent = sp.titel;
+      const sub = document.createElement("span"); sub.className = "sub"; sub.textContent = sp.sub;
+      karte.appendChild(bild); karte.appendChild(h); karte.appendChild(sub);
+      if (bereit) {
+        if (spielGespielt(sp.id)) { const g = document.createElement("span"); g.className = "gespielt"; g.textContent = "gespielt"; karte.appendChild(g); }
+        karte.addEventListener("click", function () { oeffneSpiel(sp); });
+      } else {
+        const bald = document.createElement("span"); bald.className = "bald"; bald.textContent = "kommt bald"; karte.appendChild(bald);
+      }
+      li.appendChild(karte); liste.appendChild(li);
+    });
+    if (typeof ladeBilder === "function") ladeBilder(liste);
+    zeige("ansicht-spiele");
+  }
+
+  let aktivesSpiel = null;
+  function leereSpielrahmen() {
+    document.getElementById("spiel-flaeche").innerHTML = "";
+    document.getElementById("spiel-aktionen").innerHTML = "";
+    document.getElementById("spiel-hinweis").hidden = true;
+    document.getElementById("spiel-ende").hidden = true;
+    document.getElementById("spiel-aufgabe").textContent = "";
+  }
+  /* Der Rahmen, den jedes Spiel von start() bekommt. */
+  function baueRahmen(sp) {
+    const flaeche = document.getElementById("spiel-flaeche"), aktionen = document.getElementById("spiel-aktionen");
+    return {
+      stufe: stufe,
+      wortliste: WORTLISTE[stufe],
+      flaeche: flaeche,
+      aufgabe: function (text) { document.getElementById("spiel-aufgabe").textContent = text; },
+      /* art: "richtig" (grün), "fehlt" (orange, "hier fehlt noch etwas"), "bleibt" (gestrichelt, "bleibt so"). Nie rot. */
+      hinweis: function (art, text) {
+        const h = document.getElementById("spiel-hinweis");
+        if (!text) { h.hidden = true; return; }
+        h.className = "hinweis" + (art === "richtig" ? " ok" : art === "bleibt" ? " bleibt" : "");
+        h.textContent = text; h.hidden = false;
+      },
+      leereAktionen: function () { aktionen.innerHTML = ""; },
+      knopf: function (text, fn, ghost) {
+        const b = document.createElement("button"); b.type = "button"; b.className = "btn" + (ghost ? " ghost" : ""); b.textContent = text;
+        b.addEventListener("click", fn); aktionen.appendChild(b); return b;
+      },
+      /* Ende der Runde: speichert (nur mit Einzelcode dauerhaft) und zeigt "Geschafft!". prozent = Anteil richtig, 0 bis 100. */
+      ende: function (prozent, text) {
+        merkeSpiel(sp.id, Math.max(0, Math.min(100, Math.round(prozent))));
+        aktionen.innerHTML = "";
+        document.getElementById("spiel-hinweis").hidden = true;
+        document.getElementById("spiel-ende-text").textContent = text || "";
+        document.getElementById("spiel-ende").hidden = false;
+        if (typeof ladeBilder === "function") ladeBilder(document.getElementById("spiel-ende"));
+        document.getElementById("spiel-nochmal").focus({ preventScroll: true });
+      }
+    };
+  }
+  function oeffneSpiel(sp) {
+    const modul = SPIEL_MODULE[sp.id];
+    if (!sp.aktiv || !modul) return;
+    aktivesSpiel = sp;
+    document.getElementById("spiel-titel").textContent = sp.titel;
+    document.getElementById("spiel-stufe").textContent = stufe;
+    leereSpielrahmen();
+    zeige("ansicht-spiel");
+    modul.start(baueRahmen(sp));
+  }
+  document.getElementById("spiele-zurueck").addEventListener("click", function () { zeigeStart(); });
+  document.getElementById("spiel-zurueck").addEventListener("click", function () { zeigeSpiele(); });
+  document.getElementById("spiel-zur-uebersicht").addEventListener("click", function () { zeigeSpiele(); });
+  document.getElementById("spiel-nochmal").addEventListener("click", function () { if (aktivesSpiel) oeffneSpiel(aktivesSpiel); });
+
   /* Ansichten */
-  const ANSICHTEN = ["ansicht-zugang", "ansicht-wer", "ansicht-start", "ansicht-fortschritt", "ansicht-unterthemen", "ansicht-uebung", "ansicht-einstellungen", "ansicht-kennwort", "ansicht-lehrkraft", "ansicht-nach-code", "ansicht-nach-bereich"];
+  const ANSICHTEN = ["ansicht-zugang", "ansicht-wer", "ansicht-start", "ansicht-spiele", "ansicht-spiel", "ansicht-fortschritt", "ansicht-unterthemen", "ansicht-uebung", "ansicht-einstellungen", "ansicht-kennwort", "ansicht-lehrkraft", "ansicht-nach-code", "ansicht-nach-bereich"];
   function zeige(id) {
     ANSICHTEN.forEach(function (a) { document.getElementById(a).hidden = (a !== id); });
     window.scrollTo(0, 0);
@@ -1980,10 +2591,11 @@ const EINZELCODES = [
     zeichneStufenschalter();
     document.getElementById("stufen-hinweis").hidden = true;
     zeichneKacheln();
+    zeichneSpieleEingang();
     zeige("ansicht-start");
   }
   function meldeAn(code) {
-    sitzungsErgebnisse = {};
+    sitzungsErgebnisse = {}; sitzungsSpiele = {};
     sitzung.art = "einzel"; sitzung.code = code;
     legeProfilAn(code);
     daten.aktuellerCode = code;
@@ -1991,7 +2603,7 @@ const EINZELCODES = [
     zeigeStart();
   }
   function meldeAb() {
-    sitzungsErgebnisse = {};
+    sitzungsErgebnisse = {}; sitzungsSpiele = {};
     sitzung.art = null; sitzung.code = null;
     if (daten.aktuellerCode) { daten.aktuellerCode = ""; speichere(); }
     if (bekannteProfile().length > 0) { zeigeWer(); } else { zeigeZugang(); }
@@ -2159,12 +2771,25 @@ const EINZELCODES = [
         zuletzt: typeof r.zuletzt === "string" && datum.test(r.zuletzt) ? r.zuletzt : ""
       };
     });
+    const spiele = {};
+    const sq = roh.spiele && typeof roh.spiele === "object" ? roh.spiele : {};
+    Object.keys(sq).forEach(function (k) {
+      const r = sq[k];
+      if (k.split("|").length !== 2 || !r || typeof r !== "object") return;
+      const beste = Number(r.beste), runden = Number(r.runden);
+      if (!isFinite(beste) || !isFinite(runden)) return;
+      spiele[k] = {
+        runden: Math.max(0, Math.min(100000, Math.round(runden))),
+        beste: Math.max(0, Math.min(100, Math.round(beste))),
+        zuletzt: typeof r.zuletzt === "string" && datum.test(r.zuletzt) ? r.zuletzt : ""
+      };
+    });
     const tage = (Array.isArray(roh.tage) ? roh.tage : []).filter(function (t) { return typeof t === "string" && datum.test(t); });
     return {
       code: schoen(n),
       angelegt: typeof roh.angelegt === "string" && datum.test(roh.angelegt) ? roh.angelegt : heute(),
       stufe: STUFEN.indexOf(roh.stufe) >= 0 ? roh.stufe : "leicht",
-      tage: tage, ergebnisse: erg
+      tage: tage, ergebnisse: erg, spiele: spiele
     };
   }
   /* Prüft eine gelesene Datei. Gibt { art, profile } zurück oder wirft einen Text mit verständlichem Grund. */
@@ -2186,6 +2811,16 @@ const EINZELCODES = [
       z.versuche = Math.max(Number(z.versuche) || 0, q.versuche);
       if (q.zuletzt && (!z.zuletzt || q.zuletzt > z.zuletzt)) z.zuletzt = q.zuletzt;
     });
+    if (quelle.spiele) {
+      if (!ziel.spiele || typeof ziel.spiele !== "object") ziel.spiele = {};
+      Object.keys(quelle.spiele).forEach(function (k) {
+        const q = quelle.spiele[k], z = ziel.spiele[k];
+        if (!z) { ziel.spiele[k] = { runden: q.runden, beste: q.beste, zuletzt: q.zuletzt }; return; }
+        z.runden = Math.max(Number(z.runden) || 0, q.runden);
+        z.beste = Math.max(Number(z.beste) || 0, q.beste);
+        if (q.zuletzt && (!z.zuletzt || q.zuletzt > z.zuletzt)) z.zuletzt = q.zuletzt;
+      });
+    }
     const tage = {};
     (Array.isArray(ziel.tage) ? ziel.tage : []).concat(quelle.tage).forEach(function (t) { tage[t] = true; });
     ziel.tage = Object.keys(tage).sort();
@@ -2294,7 +2929,7 @@ const EINZELCODES = [
     const einzel = findeEinzel(eingabe);
     if (einzel) { meldeAn(einzel); return; }
     if (istGemeinsam(eingabe)) {
-      sitzungsErgebnisse = {};
+      sitzungsErgebnisse = {}; sitzungsSpiele = {};
       sitzung.art = "gemeinsam"; sitzung.code = null;
       zeigeStart(); return;
     }
