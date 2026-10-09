@@ -330,6 +330,71 @@
   .spiel-flaeche:empty { display: none; }
   #spiel-aktionen:empty { display: none; }
 
+  /* Spiele: gemeinsame Bausteine */
+  .sp-reihe { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
+  .sp-kachel, .sp-chip, .sp-zelle, .sp-luecke, .sp-wort, .sp-sz { font: inherit; color: var(--ink); cursor: pointer; }
+  .sp-kachel { min-width: 48px; min-height: 48px; padding: 6px 12px; border-radius: 12px; border: 2px solid var(--line); background: var(--surface); font-weight: 700; font-size: 1.2rem; }
+  .sp-kachel:hover:not(:disabled), .sp-chip:hover:not(:disabled) { border-color: var(--accent); background: var(--surface-2); }
+  .sp-kachel:disabled { opacity: .35; cursor: default; }
+  .sp-kachel.sp-gross { min-width: 88px; min-height: 64px; font-size: 1.8rem; }
+  .sp-ok { background: var(--accent-soft) !important; border-color: var(--accent) !important; }
+  .sp-fehlt { background: var(--amber-soft) !important; border-color: var(--amber) !important; }
+  .sp-bleibt { border-style: dashed !important; }
+  .sp-gewaehlt { outline: 3px solid var(--accent); outline-offset: 1px; }
+  .sp-gestrichen { opacity: .3; text-decoration: line-through; }
+  .sp-grau { opacity: .35; }
+  .sp-feld { display: inline-grid; place-items: center; min-width: 40px; height: 52px; padding: 0 4px; border-bottom: 3px dashed var(--line); font-weight: 800; font-size: 1.5rem; }
+  .sp-feld.voll { border-bottom-style: solid; border-color: var(--accent); }
+  .sp-einl { margin: 0 0 12px; }
+  .sp-grosswort { font-size: 2rem; font-weight: 800; letter-spacing: .04em; margin: 8px 0; color: var(--accent-deep); overflow-wrap: anywhere; }
+  .sp-geschichte { line-height: 2.4; margin: 8px 0 12px; }
+  .sp-satz { line-height: 2.3; margin: 0 0 6px; }
+  .sp-wort { border: 0; background: transparent; padding: 4px 3px; border-radius: 8px; font-size: 1rem; min-height: 40px; }
+  .sp-wort:hover { background: var(--accent-soft); }
+  .sp-wort.sp-gewaehlt { background: var(--accent-soft); outline: 0; box-shadow: inset 0 -3px 0 var(--accent); }
+  .sp-wort.sp-bleibt { border: 2px dashed var(--line); }
+  .sp-luecke { min-width: 56px; min-height: 44px; padding: 2px 10px; border-radius: 10px; border: 2px dashed var(--accent); background: var(--surface); font-weight: 700; font-size: 1rem; }
+  .sp-spuren { margin-top: 12px; }
+  .sp-spuren ol { margin: 6px 0 0; padding-left: 22px; }
+  .sp-wortanzeige { font-weight: 700; min-height: 1.4em; margin: 8px 0; }
+  .sp-liste { display: flex; flex-wrap: wrap; gap: 6px 14px; list-style: none; margin: 0 0 12px; padding: 0; font-weight: 700; letter-spacing: .1em; }
+  .sp-liste .sp-gef { color: var(--accent-deep); text-decoration: underline; }
+  .sp-gitter { display: grid; grid-template-columns: repeat(var(--n), minmax(0, 1fr)); gap: 5px; max-width: 420px; }
+  .sp-zelle { aspect-ratio: 1; min-height: 40px; padding: 0; border-radius: 10px; border: 2px solid var(--line); background: var(--surface); font-weight: 800; font-size: 1.15rem; }
+  .sp-zelle.sp-tipp { box-shadow: 0 0 0 3px var(--amber); }
+  .sp-pool { min-height: 56px; }
+  .sp-chip { min-height: 48px; padding: 6px 14px; border-radius: 12px; border: 2px solid var(--line); background: var(--surface); font-weight: 600; font-size: 1rem; touch-action: none; }
+  .sp-ok.sp-chip { touch-action: auto; }
+  .sp-kisten { display: grid; grid-template-columns: repeat(var(--k), minmax(0, 1fr)); gap: 10px; margin-top: 12px; }
+  .sp-kiste { font: inherit; color: var(--ink); text-align: left; cursor: pointer; display: flex; flex-direction: column; gap: 6px; align-items: flex-start; min-height: 120px; padding: 10px; border-radius: 16px; border: 2px dashed var(--accent); background: var(--surface); }
+  .sp-kiste strong { font-size: 1.1rem; overflow-wrap: anywhere; }
+  .sp-bsp { font-size: .82rem; color: var(--ink-soft); }
+  .sp-inhalt { display: flex; flex-wrap: wrap; gap: 6px; }
+  .sp-inhalt .sp-chip { min-height: 36px; padding: 2px 8px; font-size: .9rem; }
+  .sp-klon { position: fixed; z-index: 99; transform: translate(-50%, -50%); pointer-events: none; opacity: .9; box-shadow: 0 4px 14px rgba(0,0,0,.25); }
+  .sp-band { overflow: hidden; border-radius: 14px; border: 2px solid var(--line); background: var(--surface-2); padding: 18px 14px; }
+  .sp-bandsatz { margin: 0; font-size: 1.25rem; font-weight: 600; overflow-wrap: anywhere; }
+  .sp-band.sp-laeuft .sp-bandsatz { animation: sp-lauf 20s linear forwards; }
+  @keyframes sp-lauf { from { transform: translateX(0); } to { transform: translateX(-10%); } }
+  @media (prefers-reduced-motion: reduce) { .sp-band.sp-laeuft .sp-bandsatz { animation: none; } }
+  .sp-bau { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; min-height: 64px; padding: 10px; border-radius: 14px; border: 2px dashed var(--line); background: var(--surface-2); margin-bottom: 12px; }
+  .sp-leer { color: var(--ink-soft); }
+  .sp-schluss { font-weight: 800; font-size: 1.4rem; }
+  .sp-hinweise { margin: 0 0 14px; padding-left: 22px; }
+  .sp-hinweise li { margin: 4px 0; }
+  .sp-antworten { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); gap: 10px; margin: 8px 0 12px; }
+  .sp-antwort { text-align: left; justify-content: flex-start; }
+  .sp-frage { font-size: 1.15rem; font-weight: 700; margin: 0 0 10px; }
+  .sp-sudoku { display: grid; grid-template-columns: repeat(var(--n), minmax(0, 1fr)); max-width: 380px; border: 3px solid var(--ink); border-radius: 6px; background: var(--ink); gap: 1px; margin-bottom: 12px; }
+  .sp-sz { aspect-ratio: 1; padding: 0; border: 0; border-radius: 0; background: var(--surface); font-weight: 700; font-size: 1.15rem; min-height: 30px; }
+  .sp-sz.sp-fest { background: var(--surface-2); font-weight: 800; color: var(--accent-deep); cursor: default; }
+  .sp-sz.sp-rr { margin-right: 2px; }
+  .sp-sz.sp-ru { margin-bottom: 2px; }
+  .sp-zahlen .sp-kachel { min-width: 44px; }
+  .nc-spiele { margin: 10px 0 0; font-size: .92rem; color: var(--ink-soft); }
+  .nc-spiele ul { margin: 4px 0 0; padding-left: 20px; }
+  @media (max-width: 420px) { .sp-kisten { grid-template-columns: minmax(0, 1fr); } .sp-chip { font-size: .95rem; padding: 6px 10px; } }
+
   footer { padding: 14px 16px 18px; font-size: .9rem; text-align: center; color: var(--ink-soft); }
 
   @media (max-width: 420px) {
@@ -620,7 +685,7 @@
 <footer>Evangelisches Schulzentrum Bad Düben &middot; <span style="white-space:nowrap">Version <span id="version"></span></span></footer>
 
 <script>
-const APP_VERSION = "2.1.2";
+const APP_VERSION = "3.0.0";
 document.getElementById("version").textContent = APP_VERSION;
 
 (function () {
@@ -1975,19 +2040,19 @@ const EINZELCODES = [
      Jedes Spiel meldet sich mit SPIEL_MODULE[id] = { start: function (rahmen) { ... } } an und setzt "aktiv: true" in SPIELE.
      Der Rahmen kümmert sich um Titel, Stufe, Rückmeldung, Ende-Bildschirm und Speichern. */
   const SPIELE = [
-    { id: "buchstabensalat", titel: "Buchstabensalat", sub: "Ordne die Buchstaben zu einem Wort", glyph: "ABC", aktiv: false },
-    { id: "wortschlange", titel: "Wortschlange", sub: "Finde Wörter im Buchstabengitter", glyph: "S~", aktiv: false },
-    { id: "sortier-schreibung", titel: "Sortieren: Schreibung", sub: "Sortiere Wörter in die richtige Kiste", glyph: "ie | i", aktiv: false },
-    { id: "sortier-wortarten", titel: "Sortieren: Wortarten und Satzglieder", sub: "Sortiere Wörter und Satzteile", glyph: "N V A", aktiv: false },
-    { id: "fehlerdetektiv", titel: "Fehlerdetektiv", sub: "Finde die Fehler und löse den Fall", glyph: "?!", aktiv: false },
-    { id: "fliessband", titel: "Satzzeichen-Fließband", sub: "Setze die passenden Satzzeichen", glyph: ". , ! ?", aktiv: false },
-    { id: "satzpuzzle", titel: "Satzpuzzle", sub: "Baue Sätze aus Teilen zusammen", glyph: "S P", aktiv: false },
-    { id: "wer-bin-ich", titel: "Wer bin ich?", sub: "Rate das Wort aus den Hinweisen", glyph: "Wer?", aktiv: false },
-    { id: "lueckenkrimi", titel: "Lückenkrimi", sub: "Fülle die Lücken und löse das Rätsel", glyph: "___", aktiv: false },
-    { id: "textdetektiv", titel: "Textdetektiv", sub: "Suche im Text nach Spuren", glyph: "Text", aktiv: false },
-    { id: "quizleiter", titel: "Quizleiter", sub: "Beantworte Fragen, nutze Joker", glyph: "Quiz", aktiv: false },
-    { id: "wort-des-tages", titel: "Wort des Tages", sub: "Ein Wort, ein Rätsel, jeden Tag", glyph: "1", aktiv: false },
-    { id: "sudoku", titel: "Sudoku", sub: "Zahlenrätsel zum Entspannen", glyph: "9", aktiv: false }
+    { id: "buchstabensalat", titel: "Buchstabensalat", sub: "Ordne die Buchstaben zu einem Wort", glyph: "ABC", aktiv: true },
+    { id: "wortschlange", titel: "Wortschlange", sub: "Finde Wörter im Buchstabengitter", glyph: "S~", aktiv: true },
+    { id: "sortier-schreibung", titel: "Sortieren: Schreibung", sub: "Sortiere Wörter in die richtige Kiste", glyph: "ie | i", aktiv: true },
+    { id: "sortier-wortarten", titel: "Sortieren: Wortarten und Satzglieder", sub: "Sortiere Wörter und Satzteile", glyph: "N V A", aktiv: true },
+    { id: "fehlerdetektiv", titel: "Fehlerdetektiv", sub: "Finde die Fehler und löse den Fall", glyph: "?!", aktiv: true },
+    { id: "fliessband", titel: "Satzzeichen-Fließband", sub: "Setze die passenden Satzzeichen", glyph: ". , ! ?", aktiv: true },
+    { id: "satzpuzzle", titel: "Satzpuzzle", sub: "Baue Sätze aus Teilen zusammen", glyph: "S P", aktiv: true },
+    { id: "wer-bin-ich", titel: "Wer bin ich?", sub: "Rate das Wort aus den Hinweisen", glyph: "Wer?", aktiv: true },
+    { id: "lueckenkrimi", titel: "Lückenkrimi", sub: "Fülle die Lücken und löse das Rätsel", glyph: "___", aktiv: true },
+    { id: "textdetektiv", titel: "Textdetektiv", sub: "Suche im Text nach Spuren", glyph: "Text", aktiv: true },
+    { id: "quizleiter", titel: "Quizleiter", sub: "Beantworte Fragen, nutze Joker", glyph: "Quiz", aktiv: true },
+    { id: "wort-des-tages", titel: "Wort des Tages", sub: "Ein Wort, ein Rätsel, jeden Tag", glyph: "1", aktiv: true },
+    { id: "sudoku", titel: "Sudoku", sub: "Zahlenrätsel zum Entspannen", glyph: "9", aktiv: true }
   ];
   const SPIEL_MODULE = {};
   /* Wortliste für mehrere Spiele: Lernwörter (nach Regel) und Merkwörter (Ausnahmen), je Stufe. */
@@ -2405,9 +2470,10 @@ const EINZELCODES = [
     }
     return sitzungsSpiele;
   }
-  function merkeSpiel(id, prozent) {
+  function merkeSpiel(id, prozent, einmalProTag) {
     const sd = spieleDaten(), k = id + "|" + stufe, alt = sd[k];
-    sd[k] = { runden: (alt ? alt.runden : 0) + 1, beste: alt ? Math.max(alt.beste, prozent) : prozent, zuletzt: heute() };
+    const zaehlt = !(einmalProTag && alt && alt.zuletzt === heute());
+    sd[k] = { runden: (alt ? alt.runden : 0) + (zaehlt ? 1 : 0), beste: alt ? Math.max(alt.beste, prozent) : prozent, zuletzt: heute() };
     if (sitzung.art === "einzel") speichere();
   }
   function spielGespielt(id) {
@@ -2475,8 +2541,8 @@ const EINZELCODES = [
         b.addEventListener("click", fn); aktionen.appendChild(b); return b;
       },
       /* Ende der Runde: speichert (nur mit Einzelcode dauerhaft) und zeigt "Geschafft!". prozent = Anteil richtig, 0 bis 100. */
-      ende: function (prozent, text) {
-        merkeSpiel(sp.id, Math.max(0, Math.min(100, Math.round(prozent))));
+      ende: function (prozent, text, optionen) {
+        merkeSpiel(sp.id, Math.max(0, Math.min(100, Math.round(prozent))), !!(optionen && optionen.einmalProTag));
         aktionen.innerHTML = "";
         document.getElementById("spiel-hinweis").hidden = true;
         document.getElementById("spiel-ende-text").textContent = text || "";
@@ -2499,6 +2565,646 @@ const EINZELCODES = [
   document.getElementById("spiel-zurueck").addEventListener("click", function () { zeigeStart(); });
   document.getElementById("spiel-zur-uebersicht").addEventListener("click", function () { zeigeStart(); });
   document.getElementById("spiel-nochmal").addEventListener("click", function () { if (aktivesSpiel) oeffneSpiel(aktivesSpiel); });
+
+  /* ---------- Hilfsfunktionen für Spiele ---------- */
+  function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; }
+  function mische(a) { const b = a.slice(); for (let i = b.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); const t = b[i]; b[i] = b[j]; b[j] = t; } return b; }
+  function ziehe(a, n) { return mische(a).slice(0, n); }
+  function knopf(text, cls, fn) { const b = el("button", cls, text); b.type = "button"; b.addEventListener("click", fn); return b; }
+  function sichtbar() { return !document.getElementById("ansicht-spiel").hidden; }
+  function ohneZeichen(t) { return t.replace(/^[„“"‚‘(]+|[.,;:!?“”"‘’)]+$/g, ""); }
+  /* Ziehen mit Finger oder Maus ist nur eine Zugabe; alles geht auch durch Antippen. */
+  function macheZiehbar(chip, ablegen) {
+    chip.addEventListener("pointerdown", function (e) {
+      if (e.pointerType === "mouse" && e.button !== 0) return;
+      const sx = e.clientX, sy = e.clientY; let klon = null;
+      function bewege(ev) {
+        if (!klon && Math.hypot(ev.clientX - sx, ev.clientY - sy) < 10) return;
+        if (!klon) { klon = chip.cloneNode(true); klon.classList.add("sp-klon"); document.body.appendChild(klon); }
+        klon.style.left = ev.clientX + "px"; klon.style.top = ev.clientY + "px";
+      }
+      function ende(ev) {
+        document.removeEventListener("pointermove", bewege); document.removeEventListener("pointerup", ende); document.removeEventListener("pointercancel", ende);
+        if (!klon) return;
+        klon.remove();
+        const ziel = document.elementFromPoint(ev.clientX, ev.clientY);
+        const kiste = ziel && ziel.closest ? ziel.closest("[data-kiste]") : null;
+        if (kiste) ablegen(kiste.getAttribute("data-kiste"));
+      }
+      document.addEventListener("pointermove", bewege); document.addEventListener("pointerup", ende); document.addEventListener("pointercancel", ende);
+    });
+  }
+  function sterne(n) { return "★★★".slice(0, n) + "☆☆☆".slice(0, 3 - n); }
+  /* Gemeinsamer Abschluss für Fall-Spiele: Frage mit Verdächtigen. */
+  function frageVerdaechtige(r, fall, bereich, danach) {
+    const kasten = el("div", "karte"); kasten.style.marginTop = "12px";
+    kasten.appendChild(el("p", "aufgabe", fall.frage));
+    const zeile = el("div", "zeile");
+    fall.verdaechtige.forEach(function (v) {
+      zeile.appendChild(knopf(v, "btn ghost", function () {
+        if (v === fall.richtig) {
+          zeile.querySelectorAll("button").forEach(function (b) { b.disabled = true; });
+          r.hinweis("richtig", "Richtig! " + fall.aufloesung);
+          danach();
+        } else {
+          r.hinweis("fehlt", "Das passt noch nicht zu allen Spuren. Lies die Spuren noch einmal und versuche es wieder.");
+        }
+      }));
+    });
+    kasten.appendChild(zeile); bereich.appendChild(kasten);
+    kasten.scrollIntoView({ block: "nearest" });
+  }
+  function spurenKasten() {
+    const k = el("div", "karte sp-spuren"); k.appendChild(el("strong", "", "Deine Spuren")); const l = el("ol"); k.appendChild(l); k.hidden = true;
+    return { kasten: k, neu: function (text) { k.hidden = false; l.appendChild(el("li", "", text)); } };
+  }
+
+  /* ---------- S2 Buchstabensalat ---------- */
+  SPIEL_MODULE["buchstabensalat"] = { start: function (r) {
+    const woerter = mische(ziehe(r.wortliste.lern, 8).concat(ziehe(r.wortliste.merk, 4)));
+    let nr = 0, ohneHilfe = 0;
+    function wort() {
+      const w = woerter[nr].w, chars = Array.from(w);
+      let kachelnReihe = mische(chars.map(function (c, i) { return i; }));
+      let tries = 0;
+      while (kachelnReihe.map(function (i) { return chars[i]; }).join("") === w && tries++ < 20) kachelnReihe = mische(kachelnReihe);
+      const gelegt = []; let fehler = false, hilfe = false, fertig = false;
+      r.aufgabe("Wort " + (nr + 1) + " von " + woerter.length + ". Tippe die Buchstaben in der richtigen Reihenfolge an.");
+      r.flaeche.innerHTML = "";
+      const felder = el("div", "sp-reihe"); felder.setAttribute("aria-live", "polite");
+      const kacheln = el("div", "sp-reihe");
+      r.flaeche.appendChild(felder); r.flaeche.appendChild(kacheln);
+      function zeichne() {
+        felder.innerHTML = "";
+        chars.forEach(function (c, i) { const f = el("span", "sp-feld" + (i < gelegt.length ? " voll" : ""), i < gelegt.length ? c : ""); felder.appendChild(f); });
+        kacheln.innerHTML = "";
+        kachelnReihe.forEach(function (ci) {
+          const b = knopf(chars[ci], "sp-kachel", function () {
+            if (fertig) return;
+            if (chars[ci] === w.charAt(gelegt.length)) {
+              gelegt.push(ci); r.hinweis(null);
+              if (gelegt.length === chars.length) {
+                fertig = true; if (!fehler && !hilfe) ohneHilfe++;
+                r.hinweis("richtig", "Richtig! Das Wort heißt „" + w + "“.");
+                r.leereAktionen();
+                r.knopf(nr + 1 < woerter.length ? "Nächstes Wort" : "Fertig", function () { nr++; if (nr < woerter.length) wort(); else r.ende(ohneHilfe / woerter.length * 100, "Du hast " + ohneHilfe + " von " + woerter.length + " Wörtern ohne Hilfe gefunden."); });
+              }
+              zeichne();
+            } else {
+              fehler = true; b.classList.add("sp-fehlt");
+              r.hinweis("fehlt", "Dieser Buchstabe kommt hier noch nicht. Probiere einen anderen.");
+            }
+          });
+          if (gelegt.indexOf(ci) >= 0) { b.disabled = true; }
+          b.setAttribute("aria-label", "Buchstabe " + chars[ci]);
+          kacheln.appendChild(b);
+        });
+      }
+      zeichne();
+      r.leereAktionen();
+      r.knopf("Einen Buchstaben zurück", function () { if (fertig || gelegt.length === 0) return; gelegt.pop(); r.hinweis(null); zeichne(); }, true);
+      r.knopf("Hilfe", function () { if (fertig) return; hilfe = true; r.hinweis("bleibt", "Das Wort beginnt mit „" + w.charAt(0) + "“ und hat " + w.length + " Buchstaben."); }, true);
+    }
+    wort();
+  } };
+
+  /* ---------- S3 Wortschlange ---------- */
+  const WORTSCHLANGE = {"leicht": [{"id": "ws-l-01", "thema": "Tiere", "n": 4, "raster": ["ÄBML", "RNEA", "DSUH", "AHEK"], "woerter": ["HUND", "KUH", "HASE", "MAUS", "ESEL", "BÄR"]}, {"id": "ws-l-02", "thema": "Farben", "n": 4, "raster": ["USOG", "ANBR", "RLÜO", "BGET"], "woerter": ["ROT", "BLAU", "GELB", "GRÜN", "GRAU", "ROSA"]}, {"id": "ws-l-03", "thema": "Natur", "n": 4, "raster": ["OWAN", "RSLD", "REEU", "GBAM"], "woerter": ["BAUM", "ROSE", "WALD", "MEER", "SAND", "BERG"]}], "mittel": [{"id": "ws-m-01", "thema": "Schulsachen", "n": 5, "raster": ["RAFTE", "DIERR", "TCHEE", "ISELB", "LNKAH"], "woerter": ["STIFT", "HEFT", "LINEAL", "SCHERE", "KLEBER", "RADIERER"]}, {"id": "ws-m-02", "thema": "Wetter", "n": 5, "raster": ["TSOEN", "ZWRND", "OTIFO", "ELNER", "KEBEG"], "woerter": ["REGEN", "WOLKE", "DONNER", "BLITZ", "NEBEL", "WIND", "FROST"]}, {"id": "ws-m-03", "thema": "Körperteile", "n": 5, "raster": ["KDEBF", "NIAUC", "AKSSH", "OHSEA", "RPFNW"], "woerter": ["KOPF", "NASE", "HAND", "FUSS", "BAUCH", "KNIE", "OHR"]}], "schwer": [{"id": "ws-s-01", "thema": "Berufe", "n": 6, "raster": ["IPHRNI", "LOTEER", "LHLIRG", "ERCSTÄ", "KOBNRZ", "CÄHERA"], "woerter": ["BÄCKER", "LEHRERIN", "ARZT", "GÄRTNER", "TISCHLER", "PILOT", "KOCH"]}, {"id": "ws-s-02", "thema": "Im Haus", "n": 6, "raster": ["HCAKRE", "SRNÜLK", "TECLES", "SHEFOK", "RNANBL", "TEPPEA"], "woerter": ["KÜCHE", "TREPPE", "SCHRANK", "KELLER", "FENSTER", "BALKON", "SOFA"]}, {"id": "ws-s-03", "thema": "Sport", "n": 6, "raster": ["RDEUCH", "ULRSTW", "LNENIS", "ALFMNI", "BUMEAN", "SSNTZT"], "woerter": ["FUSSBALL", "TURNEN", "SCHWIMMEN", "LAUFEN", "TENNIS", "TANZEN", "RUDERN"]}]};
+  SPIEL_MODULE["wortschlange"] = { start: function (r) {
+    const g = ziehe(WORTSCHLANGE[r.stufe], 1)[0], n = g.n;
+    const ziele = g.woerter.slice(), gefunden = {};
+    let pfad = [], hilfen = 0;
+    r.aufgabe("Finde diese Wörter zum Thema „" + g.thema + "“: Tippe Buchstabe für Buchstabe an Felder, die nebeneinander liegen (auch schräg). Dann tippe auf „Wort prüfen“.");
+    const liste = el("ul", "sp-liste"); const anzeige = el("p", "sp-wortanzeige"); anzeige.setAttribute("aria-live", "polite");
+    const gitter = el("div", "sp-gitter"); gitter.style.setProperty("--n", n);
+    r.flaeche.appendChild(liste); r.flaeche.appendChild(gitter); r.flaeche.appendChild(anzeige);
+    const zellen = [];
+    function nachbar(a, b) { return a !== b && Math.abs(a[0] - b[0]) <= 1 && Math.abs(a[1] - b[1]) <= 1; }
+    function wortAusPfad() { return pfad.map(function (p) { return g.raster[p[0]].charAt(p[1]); }).join(""); }
+    function findePfad(w) {
+      function d(rr, cc, i, benutzt) {
+        if (g.raster[rr].charAt(cc) !== w.charAt(i)) return null;
+        if (i === w.length - 1) return [[rr, cc]];
+        for (let a = -1; a <= 1; a++) for (let b = -1; b <= 1; b++) {
+          const nr = rr + a, nc = cc + b;
+          if ((a || b) && nr >= 0 && nr < n && nc >= 0 && nc < n && benutzt.indexOf(nr * n + nc) < 0) {
+            const rest = d(nr, nc, i + 1, benutzt.concat([nr * n + nc])); if (rest) return [[rr, cc]].concat(rest);
+          }
+        }
+        return null;
+      }
+      for (let rr = 0; rr < n; rr++) for (let cc = 0; cc < n; cc++) { const p = d(rr, cc, 0, [rr * n + cc]); if (p) return p; }
+      return null;
+    }
+    const gefundeneZellen = {};
+    function zeichne() {
+      liste.innerHTML = "";
+      ziele.forEach(function (w) {
+        const li = el("li", gefunden[w] ? "sp-gef" : "", gefunden[w] ? w : w.charAt(0) + " " + new Array(w.length).join("_ ").trim());
+        li.setAttribute("aria-label", gefunden[w] ? w + ", gefunden" : "Wort mit " + w.length + " Buchstaben, beginnt mit " + w.charAt(0));
+        liste.appendChild(li);
+      });
+      zellen.forEach(function (z) {
+        const wahl = pfad.some(function (p) { return p[0] === z.rr && p[1] === z.cc; });
+        z.b.className = "sp-zelle" + (wahl ? " sp-gewaehlt" : "") + (gefundeneZellen[z.rr * n + z.cc] ? " sp-ok" : "");
+        z.b.setAttribute("aria-pressed", wahl ? "true" : "false");
+      });
+      anzeige.textContent = pfad.length ? "Dein Wort: " + wortAusPfad() : "";
+    }
+    for (let rr = 0; rr < n; rr++) for (let cc = 0; cc < n; cc++) {
+      const b = knopf(g.raster[rr].charAt(cc), "sp-zelle", function () {
+        const idx = pfad.findIndex(function (p) { return p[0] === rr && p[1] === cc; });
+        if (idx === pfad.length - 1 && idx >= 0) { pfad.pop(); r.hinweis(null); }
+        else if (idx >= 0) { r.hinweis("fehlt", "Dieses Feld ist schon in deinem Wort. Jedes Feld darf nur einmal vorkommen."); }
+        else if (pfad.length && !nachbar(pfad[pfad.length - 1], [rr, cc])) { r.hinweis("fehlt", "Dieses Feld liegt nicht neben dem letzten Buchstaben."); }
+        else { pfad.push([rr, cc]); r.hinweis(null); }
+        zeichne();
+      });
+      zellen.push({ b: b, rr: rr, cc: cc }); gitter.appendChild(b);
+    }
+    zeichne();
+    r.knopf("Wort prüfen", function () {
+      const w = wortAusPfad(); if (!w) { r.hinweis("fehlt", "Tippe zuerst Buchstaben an."); return; }
+      if (ziele.indexOf(w) >= 0 && !gefunden[w]) {
+        gefunden[w] = true; pfad.forEach(function (p) { gefundeneZellen[p[0] * n + p[1]] = true; }); pfad = [];
+        const rest = ziele.filter(function (x) { return !gefunden[x]; }).length;
+        if (rest === 0) { zeichne(); r.hinweis("richtig", "Du hast alle Wörter gefunden!"); r.ende(Math.max(40, 100 - 15 * hilfen), "Alle " + ziele.length + " Wörter zum Thema „" + g.thema + "“ gefunden."); return; }
+        r.hinweis("richtig", "Gefunden: " + w + ". Noch " + rest + " Wörter."); zeichne();
+      } else if (gefunden[w]) { r.hinweis("bleibt", "Dieses Wort hast du schon gefunden."); }
+      else { r.hinweis("fehlt", "„" + w + "“ gehört nicht zu den gesuchten Wörtern. Schau noch einmal auf die Liste."); }
+    });
+    r.knopf("Löschen", function () { pfad = []; r.hinweis(null); zeichne(); }, true);
+    r.knopf("Hinweis", function () {
+      const offen = ziele.filter(function (x) { return !gefunden[x]; }); if (!offen.length) return;
+      hilfen++; const p = findePfad(offen[0]);
+      if (p) { const z = zellen.filter(function (c) { return c.rr === p[0][0] && c.cc === p[0][1]; })[0]; z.b.classList.add("sp-tipp"); r.hinweis("bleibt", "Das Wort „" + offen[0].charAt(0) + "…“ beginnt an dem markierten Feld."); }
+    }, true);
+  } };
+
+  /* ---------- S4 und S5 Sortier-Spiele ---------- */
+  /* Jedes Wort gehört eindeutig in genau eine Kiste (wird beim Bauen per Skript geprüft). */
+  const SORTIEREN = [{"art": "schreibung", "stufe": "leicht", "titel": "Sortiere die Wörter: Schreibt man sie mit „ie“ oder nur mit „i“?", "kisten": [{"id": "a", "name": "ie", "bsp": "Liebe"}, {"id": "b", "name": "i", "bsp": "Kissen"}], "woerter": [["Biene", "a"], ["Tier", "a"], ["Wiese", "a"], ["Ziege", "a"], ["Brief", "a"], ["Kind", "b"], ["Wind", "b"], ["Tisch", "b"], ["Fisch", "b"], ["Mitte", "b"]]}, {"art": "schreibung", "stufe": "leicht", "titel": "Sortiere die Wörter: Schreibt man sie mit „ck“ oder nur mit „k“?", "kisten": [{"id": "a", "name": "ck", "bsp": "Mücke"}, {"id": "b", "name": "k", "bsp": "Tank"}], "woerter": [["Ecke", "a"], ["Rock", "a"], ["Brücke", "a"], ["Decke", "a"], ["Zucker", "a"], ["Bank", "b"], ["Wolke", "b"], ["Park", "b"], ["Onkel", "b"], ["Anker", "b"]]}, {"art": "schreibung", "stufe": "leicht", "titel": "Sortiere die Wörter: Schreibt man sie mit „ß“ oder mit „ss“?", "kisten": [{"id": "a", "name": "ß", "bsp": "Gruß"}, {"id": "b", "name": "ss", "bsp": "Tasse"}], "woerter": [["Fuß", "a"], ["Straße", "a"], ["Spaß", "a"], ["Soße", "a"], ["Fußball", "a"], ["Wasser", "b"], ["Kuss", "b"], ["Fluss", "b"], ["Messer", "b"], ["Kissen", "b"]]}, {"art": "schreibung", "stufe": "mittel", "titel": "Sortiere die Wörter: „tz“ oder nur „z“?", "kisten": [{"id": "a", "name": "tz", "bsp": "Mütze"}, {"id": "b", "name": "z", "bsp": "Kreuz"}], "woerter": [["Katze", "a"], ["Platz", "a"], ["Satz", "a"], ["Glatze", "a"], ["Blitz", "a"], ["Herz", "b"], ["Salz", "b"], ["Holz", "b"], ["Pilz", "b"], ["Arzt", "b"]]}, {"art": "schreibung", "stufe": "mittel", "titel": "Sortiere die Wörter: „äu“ oder „eu“?", "kisten": [{"id": "a", "name": "äu", "bsp": "Mäuse"}, {"id": "b", "name": "eu", "bsp": "Leute"}], "woerter": [["Häuser", "a"], ["Bäume", "a"], ["Träume", "a"], ["Läufer", "a"], ["Käufer", "a"], ["Eule", "b"], ["Feuer", "b"], ["Freund", "b"], ["Teufel", "b"], ["Heu", "b"]]}, {"art": "schreibung", "stufe": "mittel", "titel": "Sortiere die Wörter: „chs“ oder „x“?", "kisten": [{"id": "a", "name": "chs", "bsp": "Luchs"}, {"id": "b", "name": "x", "bsp": "Mixer"}], "woerter": [["Fuchs", "a"], ["Wachs", "a"], ["Sechs", "a"], ["Dachs", "a"], ["Lachs", "a"], ["Hexe", "b"], ["Taxi", "b"], ["Boxer", "b"], ["Axt", "b"], ["Text", "b"]]}, {"art": "schreibung", "stufe": "schwer", "titel": "Sortiere die Wörter: Mit Dehnungs-h oder ohne h nach dem Selbstlaut?", "kisten": [{"id": "a", "name": "mit Dehnungs-h", "bsp": "Ruhe"}, {"id": "b", "name": "ohne Dehnungs-h", "bsp": "Wiese"}], "woerter": [["Zahl", "a"], ["Mehl", "a"], ["Bohne", "a"], ["Sohn", "a"], ["Uhr", "a"], ["Hase", "b"], ["Rose", "b"], ["Nase", "b"], ["Boden", "b"], ["Mond", "b"]]}, {"art": "schreibung", "stufe": "schwer", "titel": "Sortiere die Wörter: „ie“ oder nur „i“?", "kisten": [{"id": "a", "name": "ie", "bsp": "Spiegel"}, {"id": "b", "name": "i", "bsp": "Pinsel"}], "woerter": [["Fieber", "a"], ["Familie", "a"], ["Schiene", "a"], ["Fliege", "a"], ["Zwiebel", "a"], ["Zimmer", "b"], ["Winter", "b"], ["Himmel", "b"], ["Kirche", "b"], ["Wippe", "b"]]}, {"art": "schreibung", "stufe": "schwer", "titel": "Sortiere die Wörter: „ß“ oder „ss“?", "kisten": [{"id": "a", "name": "ß", "bsp": "Gruß"}, {"id": "b", "name": "ss", "bsp": "Tasse"}], "woerter": [["Süßigkeit", "a"], ["Gießkanne", "a"], ["Fußboden", "a"], ["Grüße", "a"], ["Strauß", "a"], ["Wasserhahn", "b"], ["Kissen", "b"], ["Missgeschick", "b"], ["Interesse", "b"], ["Klasse", "b"]]}, {"art": "schreibung", "stufe": "schwer", "titel": "Sortiere die Wörter: „ck“ oder nur „k“?", "kisten": [{"id": "a", "name": "ck", "bsp": "Mücke"}, {"id": "b", "name": "k", "bsp": "Tank"}], "woerter": [["Rücken", "a"], ["Brücke", "a"], ["Packung", "a"], ["Schmuck", "a"], ["Glück", "a"], ["Stärke", "b"], ["Anker", "b"], ["Onkel", "b"], ["Funke", "b"], ["Schrank", "b"]]}, {"art": "grammatik", "stufe": "leicht", "titel": "Sortiere die Wörter: Ist es ein Nomen oder ein Verb?", "kisten": [{"id": "a", "name": "Nomen", "bsp": "Hund"}, {"id": "b", "name": "Verb", "bsp": "laufen"}], "woerter": [["Tisch", "a"], ["Schule", "a"], ["Apfel", "a"], ["Mutter", "a"], ["Blume", "a"], ["schreiben", "b"], ["spielen", "b"], ["lachen", "b"], ["singen", "b"], ["malen", "b"]]}, {"art": "grammatik", "stufe": "leicht", "titel": "Sortiere die Wörter: Ist es ein Nomen oder ein Adjektiv?", "kisten": [{"id": "a", "name": "Nomen", "bsp": "Hund"}, {"id": "b", "name": "Adjektiv", "bsp": "schön"}], "woerter": [["Baum", "a"], ["Katze", "a"], ["Buch", "a"], ["Fenster", "a"], ["Auto", "a"], ["groß", "b"], ["klein", "b"], ["schnell", "b"], ["kalt", "b"], ["rot", "b"]]}, {"art": "grammatik", "stufe": "mittel", "titel": "Sortiere die Wörter nach ihrer Wortart.", "kisten": [{"id": "a", "name": "Nomen", "bsp": "Hund"}, {"id": "b", "name": "Verb", "bsp": "laufen"}, {"id": "c", "name": "Adjektiv", "bsp": "schön"}], "woerter": [["Garten", "a"], ["Lehrerin", "a"], ["Brot", "a"], ["rennen", "b"], ["malen", "b"], ["bauen", "b"], ["lustig", "c"], ["müde", "c"], ["freundlich", "c"]]}, {"art": "grammatik", "stufe": "mittel", "titel": "Sortiere die Wörter nach ihrer Wortart.", "kisten": [{"id": "a", "name": "Nomen", "bsp": "Hund"}, {"id": "b", "name": "Verb", "bsp": "laufen"}, {"id": "c", "name": "Adjektiv", "bsp": "schön"}], "woerter": [["Sommer", "a"], ["Fahrrad", "a"], ["Zimmer", "a"], ["backen", "b"], ["lesen", "b"], ["suchen", "b"], ["warm", "c"], ["leise", "c"], ["mutig", "c"]]}, {"art": "grammatik", "stufe": "schwer", "titel": "Sortiere die Wörter nach ihrer Wortart.", "kisten": [{"id": "a", "name": "Nomen", "bsp": "Hund"}, {"id": "b", "name": "Verb", "bsp": "laufen"}, {"id": "c", "name": "Adjektiv", "bsp": "schön"}], "woerter": [["Freundschaft", "a"], ["Geschwister", "a"], ["Sommerferien", "a"], ["Kindergarten", "a"], ["erzählen", "b"], ["vergessen", "b"], ["überlegen", "b"], ["begrüßen", "b"], ["gemütlich", "c"], ["vorsichtig", "c"], ["ehrlich", "c"], ["pünktlich", "c"]]}, {"art": "grammatik", "stufe": "schwer", "titel": "Sortiere die Wörter nach ihrer Wortart.", "kisten": [{"id": "a", "name": "Nomen", "bsp": "Hund"}, {"id": "b", "name": "Verb", "bsp": "laufen"}, {"id": "c", "name": "Adjektiv", "bsp": "schön"}], "woerter": [["Gesundheit", "a"], ["Erinnerung", "a"], ["Wetter", "a"], ["Nachbar", "a"], ["entdecken", "b"], ["verstecken", "b"], ["begleiten", "b"], ["gewinnen", "b"], ["neugierig", "c"], ["mutig", "c"], ["sorgfältig", "c"], ["hungrig", "c"]]}, {"art": "grammatik", "stufe": "leicht", "titel": "Sortiere die Satzteile: Was ist Subjekt, was ist Prädikat?", "kisten": [{"id": "a", "name": "Subjekt", "bsp": "Der Vogel"}, {"id": "b", "name": "Prädikat", "bsp": "singt"}], "woerter": [["Der Hund", "a"], ["Die Katze", "a"], ["Lena", "a"], ["Mein Bruder", "a"], ["Das Baby", "a"], ["bellt", "b"], ["schläft", "b"], ["lacht", "b"], ["spielt", "b"], ["weint", "b"]]}, {"art": "grammatik", "stufe": "mittel", "titel": "Sortiere die Satzteile: Subjekt, Prädikat oder Objekt?", "kisten": [{"id": "a", "name": "Subjekt", "bsp": "Der Vogel"}, {"id": "b", "name": "Prädikat", "bsp": "singt"}, {"id": "c", "name": "Objekt", "bsp": "ein Lied"}], "woerter": [["Der Junge", "a"], ["Die Lehrerin", "a"], ["Mia", "a"], ["liest", "b"], ["malt", "b"], ["kauft", "b"], ["ein Buch", "c"], ["das Bild", "c"], ["einen Apfel", "c"]]}, {"art": "grammatik", "stufe": "schwer", "titel": "Sortiere die Satzteile: Subjekt, Prädikat oder Objekt?", "kisten": [{"id": "a", "name": "Subjekt", "bsp": "Der Vogel"}, {"id": "b", "name": "Prädikat", "bsp": "singt"}, {"id": "c", "name": "Objekt", "bsp": "ein Lied"}], "woerter": [["Der kleine Hund", "a"], ["Meine beste Freundin", "a"], ["Die Kinder aus der Klasse", "a"], ["sucht", "b"], ["besucht", "b"], ["beobachten", "b"], ["den roten Ball", "c"], ["ihre Oma", "c"], ["die neue Schülerin", "c"]]}, {"art": "grammatik", "stufe": "schwer", "titel": "Sortiere die Satzteile: Subjekt, Prädikat oder Objekt?", "kisten": [{"id": "a", "name": "Subjekt", "bsp": "Der Vogel"}, {"id": "b", "name": "Prädikat", "bsp": "singt"}, {"id": "c", "name": "Objekt", "bsp": "ein Lied"}], "woerter": [["Unser Nachbar", "a"], ["Die müde Katze", "a"], ["Der Bäcker", "a"], ["repariert", "b"], ["trinkt", "b"], ["backt", "b"], ["das kaputte Fahrrad", "c"], ["warme Milch", "c"], ["frische Brötchen", "c"]]}];
+  function sortierSpiel(r, art) {
+    const themen = SORTIEREN.filter(function (t) { return t.art === art && t.stufe === r.stufe; });
+    const t = ziehe(themen, 1)[0];
+    const chips = mische(t.woerter.map(function (w, i) { return { w: w[0], k: w[1], id: i, platziert: false, falsch: false }; }));
+    let gewaehlt = null;
+    r.aufgabe(t.titel);
+    const pool = el("div", "sp-reihe sp-pool"), kistenBox = el("div", "sp-kisten");
+    kistenBox.style.setProperty("--k", t.kisten.length);
+    r.flaeche.appendChild(pool); r.flaeche.appendChild(kistenBox);
+    const kistenEl = {};
+    t.kisten.forEach(function (k) {
+      const kiste = knopf("", "sp-kiste", function () { if (gewaehlt) lege(gewaehlt, k.id); else r.hinweis("bleibt", "Tippe zuerst ein Wort an, dann diese Kiste."); });
+      kiste.setAttribute("data-kiste", k.id);
+      kiste.appendChild(el("strong", "", k.name));
+      kiste.appendChild(el("span", "sp-bsp", "zum Beispiel: " + k.bsp));
+      const inhalt = el("span", "sp-inhalt"); kiste.appendChild(inhalt);
+      kistenEl[k.id] = inhalt; kistenBox.appendChild(kiste);
+    });
+    function lege(chip, kid) {
+      if (chip.k === kid) {
+        chip.platziert = true; gewaehlt = null; r.hinweis("richtig", "Genau! „" + chip.w + "“ gehört in diese Kiste.");
+        const rest = chips.filter(function (c) { return !c.platziert; }).length;
+        zeichne();
+        if (rest === 0) { const falsch = chips.filter(function (c) { return c.falsch; }).length; r.ende((chips.length - falsch) / chips.length * 100, (chips.length - falsch) + " von " + chips.length + " Wörtern gleich beim ersten Versuch richtig einsortiert."); }
+      } else {
+        chip.falsch = true; gewaehlt = null; r.hinweis("fehlt", "„" + chip.w + "“ gehört in eine andere Kiste. Probiere die andere.");
+        zeichne();
+      }
+    }
+    function zeichne() {
+      pool.innerHTML = "";
+      Object.keys(kistenEl).forEach(function (k) { kistenEl[k].innerHTML = ""; });
+      chips.forEach(function (c) {
+        if (c.platziert) { kistenEl[c.k].appendChild(el("span", "sp-chip sp-ok", c.w)); return; }
+        const b = knopf(c.w, "sp-chip" + (gewaehlt === c ? " sp-gewaehlt" : ""), function () { gewaehlt = (gewaehlt === c) ? null : c; zeichne(); });
+        b.setAttribute("aria-pressed", gewaehlt === c ? "true" : "false");
+        macheZiehbar(b, function (kid) { lege(c, kid); });
+        pool.appendChild(b);
+      });
+    }
+    zeichne();
+  }
+  SPIEL_MODULE["sortier-schreibung"] = { start: function (r) { sortierSpiel(r, "schreibung"); } };
+  SPIEL_MODULE["sortier-wortarten"] = { start: function (r) { sortierSpiel(r, "grammatik"); } };
+
+  /* ---------- S6 Fehlerdetektiv, S10 Lückenkrimi, S11 Textdetektiv ---------- */
+  const FAELLE = {"FD": [{"id": "fd-l-01", "stufe": "leicht", "titel": "Das verschwundene Pausenbrot", "einleitung": "Lenas Pausenbrot ist weg! Drei Kinder waren im Klassenzimmer: Tom mit der blauen Mütze, Mia mit den roten Zöpfen und Ben mit der Brille. In jedem Satz steckt ein Rechtschreibfehler. Tippe ihn an, dann bekommst du eine Spur.", "saetze": [{"t": "Lena sucht ihr {Brod=Brot} unter dem Tisch.", "spur": "Das Pausenbrot ist wirklich nicht mehr da."}, {"t": "Eine {Zeugien=Zeugin} hat einen Dieb am Fenster gesehen.", "spur": "Die Zeugin sagt: Der Dieb trug keine Mütze."}, {"t": "Die {Hare=Haare} des Diebs waren offen.", "spur": "Der Dieb hatte keine Zöpfe."}, {"t": "Auf dem Boden lag ein {Krümmel=Krümel} neben dem Stuhl.", "spur": "Neben dem Stuhl lag nur ein einziger Krümel."}, {"t": "Er trägt eine {Brile=Brille} und sieht sehr traurig aus.", "spur": "Der Dieb trägt eine Brille."}], "verdaechtige": ["Tom", "Mia", "Ben"], "richtig": "Ben", "aufloesung": "Ben war es. Er hat die Brille, keine Mütze und keine Zöpfe. Er entschuldigt sich und gibt das Brot zurück.", "frage": "Wer war es?"}, {"id": "fd-l-02", "stufe": "leicht", "titel": "Wer hat die Kreide versteckt?", "einleitung": "Die Kreide ist verschwunden! Verdächtig sind Jan mit der grünen Jacke, Emma mit der gelben Jacke und Paul mit der roten Jacke. Finde in jedem Satz den Fehler.", "saetze": [{"t": "In der Pause ist die {Kreyde=Kreide} verschwunden.", "spur": "Die Kreide lag zuletzt auf dem Pult."}, {"t": "Am Eingang hat der Hausmeister einen {Schaten=Schatten} gesehen.", "spur": "Der Dieb trug keine rote Jacke."}, {"t": "Er sagt, der Dieb {rante=rannte} schnell zur Treppe.", "spur": "Der Dieb trug keine gelbe Jacke."}, {"t": "Auf der Treppe lag ein {grünner=grüner} Handschuh.", "spur": "Der Handschuh passt zu einer grünen Jacke."}, {"t": "Am Ende {gipt=gibt} jemand die Kreide zurück.", "spur": "Die Kreide ist wieder da."}], "verdaechtige": ["Jan", "Emma", "Paul"], "richtig": "Jan", "aufloesung": "Jan war es. Er hat die grüne Jacke, und der Handschuh war seiner.", "frage": "Wer war es?"}, {"id": "fd-l-03", "stufe": "leicht", "titel": "Die Fußspuren im Schnee", "einleitung": "Über Nacht hat es geschneit, und im Garten führen Fußspuren zu einem von drei Häusern: dem roten, dem blauen oder dem gelben. Finde in jedem Satz den Fehler. Dann weißt du, wohin die Spuren führen.", "saetze": [{"t": "Über Nacht hat es {geschnet=geschneit}.", "spur": "Im Garten liegt viel Schnee."}, {"t": "Im {Gahrten=Garten} laufen Fußspuren zum Tor.", "spur": "Die Fußspuren führen nicht zum roten Haus."}, {"t": "Dann biegen sie nach {rächts=rechts} ab.", "spur": "Die Fußspuren führen nicht zum blauen Haus."}, {"t": "Vor der {Tühr=Tür} liegt ein Hut.", "spur": "Der Hut liegt vor einer gelben Tür."}, {"t": "Dort {sitst=sitzt} eine müde Katze.", "spur": "Die Katze gehört in das gelbe Haus."}], "verdaechtige": ["das rote Haus", "das blaue Haus", "das gelbe Haus"], "richtig": "das gelbe Haus", "aufloesung": "Die Spuren führen zum gelben Haus.", "frage": "Wohin führen die Spuren?"}, {"id": "fd-m-01", "stufe": "mittel", "titel": "Das Rätsel der Schulglocke", "einleitung": "Die Schulglocke hat heute viel zu früh geläutet. Drei Personen hatten Zugang zum Glockenraum: der Hausmeister, die Sekretärin und der Vertretungslehrer. In jedem Satz steckt ein Fehler.", "saetze": [{"t": "Die Schulglocke {leutete=läutete} schon um neun Uhr.", "spur": "Die Pause war noch nicht zu Ende."}, {"t": "Alle wunderten sich, {das=dass} sie so früh läutete.", "spur": "Es muss jemand die Glocke bedient haben."}, {"t": "Die Sekretärin {telefonirte=telefonierte} zu dieser Zeit im Büro.", "spur": "Die Sekretärin kann es nicht gewesen sein."}, {"t": "Der Vertretungslehrer {wahr=war} mit seiner Klasse in der Turnhalle.", "spur": "Der Vertretungslehrer kann es nicht gewesen sein."}, {"t": "Nur der Hausmeister hatte einen Schlüssel zum {Keler=Keller}.", "spur": "Der Hausmeister hatte als Einziger Zugang zum Glockenraum."}], "verdaechtige": ["der Hausmeister", "die Sekretärin", "der Vertretungslehrer"], "richtig": "der Hausmeister", "aufloesung": "Es war der Hausmeister. Er hat die Glocke aus Versehen zu früh gestellt.", "frage": "Wer war es?"}, {"id": "fd-m-02", "stufe": "mittel", "titel": "Wer hat den Kuchen genascht?", "einleitung": "Mamas Schokoladenkuchen ist angeschnitten! Verdächtig sind Oma, Papa und Onkel Max. Finde in jedem Satz den Fehler.", "saetze": [{"t": "Mama hat einen {Schokoladenkuhen=Schokoladenkuchen} gebacken.", "spur": "Der Kuchen stand auf dem Küchentisch."}, {"t": "Plötzlich fehlte ein {Sück=Stück}.", "spur": "Ein großes Stück ist verschwunden."}, {"t": "Oma {sas=saß} die ganze Zeit mit Tante Lena im Garten.", "spur": "Oma kann es nicht gewesen sein."}, {"t": "Papa hat in der {Kühche=Küche} Geschirr gespült.", "spur": "Papa kann es nicht gewesen sein."}, {"t": "Onkel Max hat noch {Schokolahde=Schokolade} im Gesicht.", "spur": "Onkel Max hat Schokolade im Gesicht."}], "verdaechtige": ["Oma", "Papa", "Onkel Max"], "richtig": "Onkel Max", "aufloesung": "Onkel Max war es. Er hat noch Schokolade im Gesicht.", "frage": "Wer war es?"}, {"id": "fd-m-03", "stufe": "mittel", "titel": "Der Brief ohne Absender", "einleitung": "Im Briefkasten lag ein Brief ohne Absender. Nele schreibt mit Füller, Finn mit Bleistift und Lara mit Filzstift. Finde in jedem Satz den Fehler.", "saetze": [{"t": "Im {Brifkasten=Briefkasten} lag ein Brief ohne Absender.", "spur": "Der Brief ist mit der Hand geschrieben."}, {"t": "Die Striche waren sehr {dühn=dünn}.", "spur": "Die Striche sind dünn. Es war also kein Filzstift."}, {"t": "Man konnte nichts {ausradiren=ausradieren}.", "spur": "Nichts wurde ausradiert. Es war also kein Bleistift."}, {"t": "Am Rand klebte ein kleiner {Tinttenfleck=Tintenfleck}.", "spur": "Ein Tintenfleck passt zu einem Füller."}, {"t": "Am Ende {gesteth=gesteht} jemand, dass er den Brief geschrieben hat.", "spur": "Jemand hat den Brief geschrieben."}], "verdaechtige": ["Nele", "Finn", "Lara"], "richtig": "Nele", "aufloesung": "Nele hat den Brief geschrieben. Sie schreibt mit Füller.", "frage": "Wer war es?"}, {"id": "fd-s-01", "stufe": "schwer", "titel": "Der Diebstahl im Museum", "einleitung": "Im Museum ist in der Nacht eine wertvolle Vase verschwunden. Verdächtig sind der Wächter, die Putzfrau und der Fotograf. Finde in jedem Satz den Fehler.", "saetze": [{"t": "Gestern Nacht verschwand eine {kostbahre=kostbare} Vase.", "spur": "Die Vase stand in einem verschlossenen Raum."}, {"t": "Die Polizei vermutet, {das=dass} der Täter einen Schlüssel hatte.", "spur": "Der Täter hatte einen Schlüssel."}, {"t": "Der Fotograf {besas=besaß} keinen Schlüssel.", "spur": "Der Fotograf kann es nicht gewesen sein."}, {"t": "Die Putzfrau war zu der Zeit im {Kranckenhaus=Krankenhaus}.", "spur": "Die Putzfrau kann es nicht gewesen sein."}, {"t": "Der Wächter {verhilt=verhielt} sich sehr nervös.", "spur": "Der Wächter hatte einen Schlüssel und war nervös."}], "verdaechtige": ["der Wächter", "die Putzfrau", "der Fotograf"], "richtig": "der Wächter", "aufloesung": "Es war der Wächter. Er hatte den Schlüssel und war nervös.", "frage": "Wer war es?"}, {"id": "fd-s-02", "stufe": "schwer", "titel": "Das geheime Labor", "einleitung": "Im Labor ist ein Experiment misslungen. Jemand hat den Deckel offen gelassen. Verdächtig sind Anton, Ida und Carlos. Finde in jedem Satz den Fehler.", "saetze": [{"t": "Im {Laboratorrium=Laboratorium} lief ein wichtiges Experiment.", "spur": "Das Experiment lief seit dem Morgen."}, {"t": "Plötzlich {schpritzte=spritzte} grüne Flüssigkeit aus dem Gefäß.", "spur": "Jemand hat den Deckel offen gelassen."}, {"t": "Anton {stant=stand} die ganze Zeit am anderen Tisch.", "spur": "Anton kann es nicht gewesen sein."}, {"t": "Ida arbeitete sehr {sorgfeltig=sorgfältig} und hat nichts verschüttet.", "spur": "Ida kann es nicht gewesen sein."}, {"t": "Carlos {vergas=vergaß} den Deckel zu schließen.", "spur": "Carlos hat den Deckel offen gelassen."}], "verdaechtige": ["Anton", "Ida", "Carlos"], "richtig": "Carlos", "aufloesung": "Es war Carlos. Er hat vergessen, den Deckel zu schließen.", "frage": "Wer war es?"}, {"id": "fd-s-03", "stufe": "schwer", "titel": "Die Schatzkarte", "einleitung": "Eine alte Schatzkarte zeigt drei mögliche Orte: den Hafen, den Wald oder die Burg. Finde in jedem Satz den Fehler. Dann weißt du, wo der Schatz liegt.", "saetze": [{"t": "Die {Schatskarte=Schatzkarte} lag in einer alten Truhe.", "spur": "Die Karte ist sehr alt."}, {"t": "Ein {Piraht=Pirat} schrieb, der Schatz liege nicht im Hafen.", "spur": "Der Schatz liegt nicht im Hafen."}, {"t": "Er liegt auch nicht im {Waldt=Wald}.", "spur": "Der Schatz liegt nicht im Wald."}, {"t": "Man {mus=muss} also zur Burg gehen.", "spur": "Es bleibt nur die Burg."}, {"t": "In der Burg {ghibt=gibt} es einen geheimen Keller.", "spur": "Im Keller der Burg steht die Truhe."}], "verdaechtige": ["im Hafen", "im Wald", "in der Burg"], "richtig": "in der Burg", "aufloesung": "Der Schatz liegt in der Burg.", "frage": "Wo liegt der Schatz?"}], "LK": [{"id": "lk-l-01", "stufe": "leicht", "titel": "Wer hat Finns Mütze genommen?", "einleitung": "Finns Mütze ist verschwunden! Verdächtig sind Anton mit dem roten Pulli, Mia mit dem blauen Pulli und Ole mit dem grünen Pulli. Wähle in jeder Lücke die richtige Schreibung. Dann bekommst du Spuren.", "text": "Finn sucht seine Mütze auf der W{ie/i=ie}se und im Sandkasten. Ein Kind sagt: „Ich habe den Dieb am Fu{ß/ss=ß}ballplatz gesehen.“ Der Dieb trug einen roten Pulli. Er lief zur Ba{nk/ck=nk}, dort lag nur noch ein Stü{ck/k=ck} Papier. Darauf stand: „Die Mütze war so sch{ö/o=ö}n!“", "spuren": ["Finn hat überall gesucht.", "Ein Kind hat den Dieb gesehen.", "Der Dieb trug einen roten Pulli.", "Auf der Bank lag ein Stück Papier.", "Der Dieb wollte die Mütze unbedingt haben."], "verdaechtige": ["Anton", "Mia", "Ole"], "richtig": "Anton", "aufloesung": "Anton war es. Er trägt den roten Pulli.", "frage": "Wer war es?"}, {"id": "lk-l-02", "stufe": "leicht", "titel": "Der verschwundene Hamster", "einleitung": "Der Klassenhamster Krümel ist aus dem Käfig verschwunden! Wer hat die Käfigtür offen gelassen? Verdächtig sind Lina mit dem Zopf, Ben mit der Kappe und Sara mit der Brille.", "text": "Am Morgen war der K{ä/e=ä}fig leer. Die Tür war offen, aber niemand hat sie gesehen. Ein Kind erzählt, dass der Hamster unter dem Sch{r/rr=r}ank sitzt. Dort liegt auch eine Kappe. Die Kappe ist so gro{ß/ss=ß}, dass sie nur Ben passt. Sara und Lina haben keine Kappe, aber Lina hat einen Zopf, den man am Fenster sieht. Zum Glück ist Krümel unversehrt und frisst gerade eine Mö{hr/r=hr}e. Ben gibt zu, dass er beim F{ü/u=ü}ttern die Tür nicht zugemacht hat.", "spuren": ["Der Käfig ist leer.", "Der Hamster sitzt unter dem Schrank.", "Dort liegt eine Kappe, die nur Ben passt.", "Krümel ist unversehrt und frisst eine Möhre.", "Ben hat beim Füttern die Tür nicht zugemacht."], "verdaechtige": ["Lina", "Ben", "Sara"], "richtig": "Ben", "aufloesung": "Ben hat die Käfigtür offen gelassen. Seine Kappe lag unter dem Schrank.", "frage": "Wer war es?"}, {"id": "lk-m-01", "stufe": "mittel", "titel": "Der Fall der Pausenglocke", "einleitung": "Die Pausenglocke hat nicht geläutet. Verdächtig sind der Hausmeister mit dem Schlüsselbund, die Sekretärin im Büro und Herr Lenz mit dem Fahrrad. Wähle in jeder Lücke die richtige Schreibung.", "text": "Heute Morgen blieb die Glocke st{ill/il=ill}. Der Hausmeister sagt, {das/dass=dass} er den Schlüssel vermisst. Die Sekretärin hat die ganze Zeit im B{ü/u=ü}ro gesessen und telefoniert. Herr Lenz kam mit dem Fahr{rad/rat=rad} erst nach acht Uhr, da war die Glocke schon still. Der Schlüsselbund lag aber in der Tasche des Hausmeisters, und darin steckte auch der Schalter. Der Hausm{ei/ai=ei}ster stellt die Glocke wieder an.", "spuren": ["Die Glocke blieb still.", "Der Schlüssel fehlte.", "Die Sekretärin telefonierte im Büro.", "Herr Lenz kam zu spät, als die Glocke schon still war.", "Der Schlüsselbund und der Schalter waren beim Hausmeister."], "verdaechtige": ["der Hausmeister", "die Sekretärin", "Herr Lenz"], "richtig": "der Hausmeister", "aufloesung": "Der Hausmeister hat den Schalter in der Tasche vergessen.", "frage": "Wer war es?"}, {"id": "lk-m-02", "stufe": "mittel", "titel": "Wer hat das Fenster geöffnet?", "einleitung": "Im Klassenzimmer war es eiskalt, denn jemand hat das Fenster aufgemacht. Verdächtig sind Emil, Hanna und Jonas. Wähle in jeder Lücke die richtige Schreibung.", "text": "Gestern Nachmittag war das Fenster noch zu. Heute Morgen war es weit auf, und auf dem Boden lag eine Pf{ü/u=ü}tze. Emil war schon um sechs Uhr bei seiner O{m/mm=m}a, das sagt seine Nachbarin. Hanna saß im Bus und hat die ganze Fahrt ein B{u/uh=u}ch gelesen. Jonas war als Einziger früh in der Schule, er hat die Pflanzen geg{oss/os=oss}en und das Fenster geöffnet. Er wollte fr{i/ie=i}sche Luft hereinlassen und hat es dann vergessen.", "spuren": ["Auf dem Boden lag eine Pfütze.", "Emil war bei seiner Oma.", "Hanna war im Bus.", "Jonas hat die Pflanzen gegossen und das Fenster geöffnet.", "Jonas wollte frische Luft hereinlassen."], "verdaechtige": ["Emil", "Hanna", "Jonas"], "richtig": "Jonas", "aufloesung": "Jonas hat das Fenster geöffnet, um zu lüften.", "frage": "Wer war es?"}, {"id": "lk-s-01", "stufe": "schwer", "titel": "Der verschwundene Brief", "einleitung": "Ein wichtiger Brief ist aus dem Lehrerzimmer verschwunden. Verdächtig sind Frau Böhm, Herr Kunz und die Praktikantin Lisa.", "text": "Der Brief war an die Schulleitung adressiert und enthielt einen {Scheck/Schek=Scheck}. Frau Böhm war den ganzen Tag im Krankenhaus bei einer {Operation/Oparation=Operation}. Herr Kunz sagt, {dass/das=dass} er den Raum nie betreten hat, und das bestätigt die Kamera. Die Praktikantin Lisa hat den Brief versehentlich in den {Papierkorb/Papirkorb=Papierkorb} geworfen. Sie wollte nur aufräumen und hat die Adresse nicht gelesen. Am Ende f{and/ant=and} der Hausmeister den Brief beim Leeren des Papierkorbs.", "spuren": ["Es ging um einen Scheck.", "Frau Böhm war im Krankenhaus.", "Herr Kunz war nie im Raum.", "Lisa hat den Brief weggeworfen.", "Der Hausmeister hat den Brief gefunden."], "verdaechtige": ["Frau Böhm", "Herr Kunz", "Lisa"], "richtig": "Lisa", "aufloesung": "Lisa hat den Brief aus Versehen weggeworfen.", "frage": "Wer war es?"}, {"id": "lk-s-02", "stufe": "schwer", "titel": "Der geheimnisvolle Schatten", "einleitung": "Im Park wurde nachts ein Schatten gesehen. Wer war es? Verdächtig sind der Nachbar Herr Voss, die Joggerin Nina und der Fotograf Tim.", "text": "Ein Spaziergänger hat nachts einen Schatten im P{ar/arr=ar}k gesehen. Herr Voss sagt, {dass/das=dass} er um diese Zeit schon schlief, und seine Frau bestätigt das. Nina trainiert nur am Morgen, nie in der N{a/ah=a}cht. Tim wollte den Mond fotografieren und hatte eine {Kamera/Kammera=Kamera} und ein Stativ dabei. Auf seinem Foto sieht man den Schatten eines Baumes und den Mond. Er hat den Schatten selbst gesehen und {erschr/erschrr=erschr}ocken.", "spuren": ["Der Schatten wurde nachts gesehen.", "Herr Voss schlief schon.", "Nina läuft nur morgens.", "Tim hatte eine Kamera und ein Stativ dabei.", "Auf Tims Foto ist der Schatten zu sehen."], "verdaechtige": ["Herr Voss", "Nina", "Tim"], "richtig": "Tim", "aufloesung": "Tim war es. Er wollte den Mond fotografieren und stand mit dem Stativ im Park.", "frage": "Wer war es?"}], "TD": [{"id": "td-l-01", "stufe": "leicht", "titel": "Der Apfelkuchen", "frage": "Wer hat den Apfelkuchen genommen?", "text": "Mama stellt den Apfelkuchen zum Abkühlen aufs Fensterbrett. Am Nachmittag ist der Kuchen weg. Auf dem Boden liegen [klebrige Fußabdrücke]. Das Fenster ist [zu hoch für den Hund]. Opa sitzt im Garten und [hat Krümel am Pulli]. Die Katze schläft [seit dem Mittag] auf dem Sofa.", "verdaechtige": ["der Hund", "die Katze", "Opa"], "richtig": "Opa", "aufloesung": "Opa hat den Kuchen genommen. Er hat Krümel am Pulli."}, {"id": "td-l-02", "stufe": "leicht", "titel": "Das rote Fahrrad", "frage": "Wer hat das Fahrrad genommen?", "text": "Das rote Fahrrad stand vor der Schule. Nach dem Unterricht ist es weg. Der Hausmeister erzählt: „Ich habe [einen Jungen mit Kappe] weglaufen gesehen.“ Lea trägt [keine Kappe], sie trägt immer ein Stirnband. Jonas war zu dieser Zeit [beim Zahnarzt]. Emil trägt jeden Tag [eine blaue Kappe]. Am Ende steht das Fahrrad [hinter der Turnhalle].", "verdaechtige": ["Jonas", "Lea", "Emil"], "richtig": "Emil", "aufloesung": "Emil war es. Er trägt eine Kappe, und die anderen Kinder können es nicht gewesen sein."}, {"id": "td-m-01", "stufe": "mittel", "titel": "Der geheimnisvolle Brief", "frage": "Wer hat den Brief geschrieben?", "text": "Auf dem Pult der Lehrerin liegt eine Blume mit einem Brief. Der Brief ist [mit grüner Tinte] geschrieben. Frau Sommer benutzt [nur schwarze Stifte]. Herr Berg [hat gar keinen Füller]. Herr Winter [besitzt einen grünen Füller] und war [als Erster im Schulhaus].", "verdaechtige": ["Frau Sommer", "Herr Berg", "Herr Winter"], "richtig": "Herr Winter", "aufloesung": "Herr Winter hat den Brief geschrieben. Er hat den grünen Füller."}, {"id": "td-m-02", "stufe": "mittel", "titel": "Der offene Wasserhahn", "frage": "Wer hat den Wasserhahn nicht zugedreht?", "text": "Im Waschraum steht Wasser auf dem Boden. Um zehn Uhr war [alles noch trocken]. Ben hatte bis elf Uhr [Mathe in Raum 5]. Sara war [von neun bis zwölf in der Bücherei]. Tim [kam um halb elf aus dem Waschraum] und hatte [nasse Ärmel].", "verdaechtige": ["Ben", "Sara", "Tim"], "richtig": "Tim", "aufloesung": "Tim hat den Wasserhahn nicht zugedreht. Er hatte nasse Ärmel und kam aus dem Waschraum."}, {"id": "td-s-01", "stufe": "schwer", "titel": "Der verschwundene Pokal", "frage": "Wer hat den Pokal versteckt?", "text": "Der Pokal der Klassenmeisterschaft ist verschwunden. Er stand [im Schrank im Flur], den man [nur mit einem Schlüssel] öffnet. Marie hat [den Schlüssel am Freitag abgegeben]. Lukas war am Wochenende [im Urlaub in Spanien]. Selim ist [der Schlüsselwart] und hat [den Schlüssel noch immer bei sich]. Im Schrank liegt ein Zettel: „Der Pokal ist im Kunstraum, als Überraschung für die Siegerehrung.“", "verdaechtige": ["Marie", "Lukas", "Selim"], "richtig": "Selim", "aufloesung": "Selim hat den Pokal versteckt. Er ist der Schlüsselwart und wollte alle überraschen."}, {"id": "td-s-02", "stufe": "schwer", "titel": "Der verschwundene Kuchen", "frage": "Wer hat den Kuchen genommen?", "text": "Beim Elternabend fehlt ein Kuchen. Die Kuchenplatte [stand auf dem Lehrertisch]. Frau Kühn [ist gegen Nüsse allergisch], aber der Kuchen war [ein Nusskuchen]. Herr Salz [mag keinen süßen Kuchen]. Herr Brandt [hatte Krümel im Bart] und [ein glückliches Lächeln].", "verdaechtige": ["Herr Brandt", "Frau Kühn", "Herr Salz"], "richtig": "Herr Brandt", "aufloesung": "Herr Brandt hat den Kuchen gegessen. Er hat noch Krümel im Bart."}]};
+  SPIEL_MODULE["fehlerdetektiv"] = { start: function (r) {
+    const fall = ziehe(FAELLE.FD.filter(function (f) { return f.stufe === r.stufe; }), 1)[0];
+    let fehlgriffe = 0, gefunden = 0;
+    r.aufgabe(fall.titel);
+    r.flaeche.appendChild(el("p", "sp-einl", fall.einleitung));
+    const spuren = spurenKasten();
+    const saetze = el("div", "sp-saetze"); r.flaeche.appendChild(saetze); r.flaeche.appendChild(spuren.kasten);
+    const frageBox = el("div"); r.flaeche.appendChild(frageBox);
+    fall.saetze.forEach(function (s) {
+      const p = el("p", "sp-satz"); const m = s.t.match(/\{([^}=]+)=([^}]+)\}/);
+      const teile = s.t.split(/(\{[^}]*\})/).filter(function (x) { return x; });
+      let erledigt = false;
+      teile.forEach(function (teil) {
+        const falsch = teil.charAt(0) === "{";
+        const woerter = falsch ? [teil.slice(1, -1).split("=")[0]] : teil.split(/(\s+)/);
+        woerter.forEach(function (wort, wi) {
+          if (!wort.trim() || /^[.,;:!?“”„"]+$/.test(wort)) { p.appendChild(document.createTextNode(wort)); return; }
+          const b = knopf(wort, "sp-wort", function () {
+            if (erledigt) return;
+            if (falsch) {
+              erledigt = true; b.classList.add("sp-ok"); b.textContent = m[2]; gefunden++;
+              r.hinweis("richtig", "Gefunden! Richtig heißt es „" + m[2] + "“.");
+              spuren.neu(s.spur);
+              if (gefunden === fall.saetze.length) {
+                r.hinweis("richtig", "Alle Fehler gefunden! Jetzt kannst du den Fall lösen.");
+                frageVerdaechtige(r, fall, frageBox, function () { r.ende(Math.max(40, 100 - 12 * fehlgriffe), "Du hast den Fall „" + fall.titel + "“ gelöst."); });
+              }
+            } else {
+              if (!b.classList.contains("sp-bleibt")) fehlgriffe++;
+              b.classList.add("sp-bleibt");
+              r.hinweis("bleibt", "„" + ohneZeichen(wort) + "“ ist richtig geschrieben. Suche weiter.");
+            }
+          });
+          p.appendChild(b);
+        });
+      });
+      saetze.appendChild(p);
+    });
+  } };
+
+  SPIEL_MODULE["lueckenkrimi"] = { start: function (r) {
+    const fall = ziehe(FAELLE.LK.filter(function (f) { return f.stufe === r.stufe; }), 1)[0];
+    r.aufgabe(fall.titel);
+    r.flaeche.appendChild(el("p", "sp-einl", fall.einleitung));
+    const teile = fall.text.split(/(\{[^}]*\})/).filter(function (x) { return x; });
+    const luecken = [];
+    const absatz = el("p", "sp-geschichte"); r.flaeche.appendChild(absatz);
+    const opt = el("div", "sp-reihe"); opt.setAttribute("aria-live", "polite");
+    const spuren = spurenKasten(); const frageBox = el("div");
+    r.flaeche.appendChild(opt); r.flaeche.appendChild(spuren.kasten); r.flaeche.appendChild(frageBox);
+    let aktiv = -1, fehler = 0, geloest = false;
+    teile.forEach(function (t) {
+      if (t.charAt(0) === "{") {
+        const x = t.slice(1, -1).split("="), L = { optionen: x[0].split("/"), richtig: x[1], gewaehlt: null, ok: false, idx: luecken.length };
+        L.b = knopf("___", "sp-luecke", function () { if (!geloest) { aktiv = L.idx; zeichneOptionen(); } });
+        L.b.setAttribute("aria-label", "Lücke " + (L.idx + 1));
+        luecken.push(L); absatz.appendChild(L.b);
+      } else { absatz.appendChild(document.createTextNode(t)); }
+    });
+    function zeichneOptionen() {
+      opt.innerHTML = "";
+      luecken.forEach(function (L, i) { L.b.classList.toggle("sp-gewaehlt", i === aktiv); });
+      if (aktiv < 0) return;
+      const L = luecken[aktiv];
+      L.optionen.forEach(function (o) {
+        opt.appendChild(knopf(o, "sp-kachel", function () {
+          L.gewaehlt = o; L.ok = false; L.b.textContent = o; L.b.classList.remove("sp-ok", "sp-fehlt");
+          r.hinweis(null); aktiv = -1; zeichneOptionen();
+        }));
+      });
+    }
+    r.knopf("Prüfen", function () {
+      if (geloest) return;
+      const leer = luecken.filter(function (L) { return !L.gewaehlt; });
+      if (leer.length) { r.hinweis("fehlt", "Es " + (leer.length === 1 ? "ist noch eine Lücke" : "sind noch " + leer.length + " Lücken") + " leer. Tippe auf eine Lücke und wähle die richtige Schreibung."); return; }
+      let falsch = 0;
+      luecken.forEach(function (L) {
+        if (L.gewaehlt === L.richtig) { if (!L.ok) { L.ok = true; spuren.neu(fall.spuren[L.idx]); } L.b.classList.add("sp-ok"); L.b.classList.remove("sp-fehlt"); }
+        else { falsch++; L.b.classList.add("sp-fehlt"); L.ok = false; }
+      });
+      if (falsch) { fehler++; r.hinweis("fehlt", falsch === 1 ? "Eine Lücke passt noch nicht (orange). Versuche es noch einmal." : falsch + " Lücken passen noch nicht (orange). Versuche es noch einmal."); return; }
+      geloest = true;
+      r.hinweis("richtig", "Alle Lücken stimmen! Jetzt kannst du den Fall lösen.");
+      frageVerdaechtige(r, fall, frageBox, function () { r.ende(Math.max(40, 100 - 15 * fehler), "Du hast den Fall „" + fall.titel + "“ gelöst."); });
+    });
+  } };
+
+  SPIEL_MODULE["textdetektiv"] = { start: function (r) {
+    const fall = ziehe(FAELLE.TD.filter(function (f) { return f.stufe === r.stufe; }), 1)[0];
+    r.aufgabe(fall.titel + ": " + fall.frage + " Tippe im Text alle Wörter an, die dir wichtig vorkommen. Du darfst auch zu viele antippen.");
+    const tokens = []; const spuren = [];
+    const absatz = el("p", "sp-geschichte sp-text"); r.flaeche.appendChild(absatz);
+    const info = el("p", "sp-wortanzeige"); r.flaeche.appendChild(info);
+    const frageBox = el("div"); r.flaeche.appendChild(frageBox);
+    fall.text.split(/(\[[^\]]+\])/).filter(function (x) { return x; }).forEach(function (teil) {
+      const istSpur = teil.charAt(0) === "["; const si = istSpur ? spuren.length : -1;
+      if (istSpur) spuren.push({ wortIdx: [], text: teil.slice(1, -1) });
+      (istSpur ? teil.slice(1, -1) : teil).split(/(\s+)/).forEach(function (w) {
+        if (!w.trim()) { absatz.appendChild(document.createTextNode(w)); return; }
+        const tk = { w: w, spur: si, an: false };
+        tk.b = knopf(w, "sp-wort", function () { tk.an = !tk.an; tk.b.classList.toggle("sp-gewaehlt", tk.an); tk.b.setAttribute("aria-pressed", tk.an ? "true" : "false"); });
+        tk.b.setAttribute("aria-pressed", "false");
+        if (si >= 0) spuren[si].wortIdx.push(tokens.length);
+        tokens.push(tk); absatz.appendChild(tk.b);
+      });
+    });
+    let geprueft = false, gefunden = 0, fehler = 0;
+    r.knopf("Spuren prüfen", function () {
+      gefunden = spuren.filter(function (s) { return s.wortIdx.every(function (i) { return tokens[i].an; }); }).length;
+      info.textContent = "Du hast " + gefunden + " von " + spuren.length + " Spuren gefunden.";
+      if (gefunden < spuren.length) r.hinweis("fehlt", "Du hast " + gefunden + " von " + spuren.length + " wichtigen Stellen gefunden. Lies den Text noch einmal. Du kannst auch schon raten.");
+      else r.hinweis("richtig", "Alle " + spuren.length + " Spuren gefunden!");
+      tokens.forEach(function (t) { if (t.spur >= 0 && t.an) t.b.classList.add("sp-ok"); });
+      if (!geprueft) { geprueft = true; frageVerdaechtige(r, fall, frageBox, function () { r.ende(Math.round(gefunden / spuren.length * 100), "Du hast den Fall gelöst und " + gefunden + " von " + spuren.length + " Spuren gefunden."); }); }
+    });
+  } };
+
+  /* ---------- S7 Satzzeichen-Fließband ---------- */
+  const FLIESSBAND = {"leicht": [["Wo wohnst du", "?"], ["Wie heißt du", "?"], ["Hast du Hunger", "?"], ["Kommst du mit", "?"], ["Was isst du gern", "?"], ["Hilfe", "!"], ["Feuer", "!"], ["Vorsicht", "!"], ["Au, das tut weh", "!"], ["Achtung, der Zug kommt", "!"], ["Der Hund schläft", "."], ["Ich lese ein Buch", "."], ["Es regnet heute", "."], ["Mia spielt im Garten", "."], ["Wir essen Brot", "."]], "mittel": [["Warum ist der Himmel blau", "?"], ["Wann beginnt die Schule", "?"], ["Hast du die Hausaufgaben gemacht", "?"], ["Wohin fährt der Bus", "?"], ["Darf ich mitspielen", "?"], ["Vorsicht, die Stufe", "!"], ["Achtung, das Eis ist glatt", "!"], ["Hilfe, ich falle", "!"], ["Stopp, das ist gefährlich", "!"], ["Feuer, alle raus", "!"], ["Am Nachmittag besuchen wir Oma", "."], ["Der Bus kommt in fünf Minuten", "."], ["Nach der Schule gehe ich schwimmen", "."], ["Mein Bruder hat heute Geburtstag", "."], ["Im Herbst fallen die Blätter", "."]], "schwer": [["Wer hat mir gestern das Buch zurückgebracht", "?"], ["Wie lange dauert die Fahrt bis zum Bahnhof", "?"], ["Kannst du mir bitte beim Aufräumen helfen", "?"], ["Welche Hausaufgaben haben wir bis Montag auf", "?"], ["Wann kommt deine Schwester aus dem Urlaub zurück", "?"], ["Achtung, hier bricht gleich das Eis", "!"], ["Hilfe, mein Fahrrad ist gestohlen worden", "!"], ["Vorsicht, der Boden ist frisch gewischt", "!"], ["Stopp, du darfst jetzt nicht über die Straße gehen", "!"], ["Feuer, bitte verlasst sofort das Gebäude", "!"], ["Meine Großeltern wohnen in einem kleinen Dorf am Fluss", "."], ["Im Sommer fahren wir jedes Jahr mit dem Zug ans Meer", "."], ["Der Lehrer erklärt den Kindern die neue Aufgabe", "."], ["Nach dem Unterricht treffen wir uns im Park", "."], ["Mein Vater repariert am Wochenende das alte Fahrrad", "."]]};
+  SPIEL_MODULE["fliessband"] = { start: function (r) {
+    const saetze = mische(FLIESSBAND[r.stufe]);
+    let nr = 0, richtig = 0, tempo = false, timer = null, offen = true;
+    r.aufgabe("Welches Satzzeichen gehört ans Ende? Tippe auf den Punkt, das Fragezeichen oder das Ausrufezeichen.");
+    const kopf = el("div", "zeile"); const schalter = knopf("Tempo: aus", "btn ghost small", function () {
+      tempo = !tempo; schalter.textContent = tempo ? "Tempo: an" : "Tempo: aus"; schalter.setAttribute("aria-pressed", tempo ? "true" : "false"); starteSatz(true);
+    });
+    schalter.setAttribute("aria-pressed", "false"); kopf.appendChild(schalter);
+    const band = el("div", "sp-band"); const satz = el("p", "sp-bandsatz"); band.appendChild(satz);
+    const stand = el("p", "sp-wortanzeige"); const zeichen = el("div", "sp-reihe");
+    r.flaeche.appendChild(kopf); r.flaeche.appendChild(band); r.flaeche.appendChild(stand); r.flaeche.appendChild(zeichen);
+    function stoppe() { if (timer) { clearTimeout(timer); timer = null; } }
+    function starteSatz(neuZeichnen) {
+      stoppe(); offen = true;
+      const s = saetze[nr]; satz.textContent = s[0] + " …"; satz.classList.remove("sp-ok", "sp-fehlt");
+      stand.textContent = "Satz " + (nr + 1) + " von " + saetze.length;
+      band.classList.remove("sp-laeuft"); void band.offsetWidth;
+      if (tempo) {
+        band.classList.add("sp-laeuft");
+        timer = setTimeout(function () {
+          if (!sichtbar() || !offen) return;
+          r.hinweis("bleibt", "Das Band ist weitergelaufen. Dieser Satz kommt gleich noch einmal. Es gibt keinen Punktabzug.");
+          saetze.push(saetze.splice(nr, 1)[0]); starteSatz(true);
+        }, 20000);
+      }
+    }
+    function wahl(z) {
+      if (!offen) return; const s = saetze[nr];
+      if (z === s[1]) {
+        offen = false; stoppe(); if (!s.fehler) richtig++; satz.textContent = s[0] + z; satz.classList.add("sp-ok");
+        r.hinweis("richtig", "Richtig!");
+        setTimeout(function () { if (!sichtbar()) return; nr++; if (nr < saetze.length) { r.hinweis(null); starteSatz(true); } else { r.ende(richtig / saetze.length * 100, "Du hast " + richtig + " von " + saetze.length + " Sätzen gleich richtig abgeschlossen."); } }, 700);
+      } else { s.fehler = true; satz.classList.add("sp-fehlt"); r.hinweis("fehlt", "Hier passt „" + z + "“ noch nicht. Lies den Satz noch einmal. Ist es eine Frage, ein Ausruf oder eine Aussage?"); }
+    }
+    [["Punkt  .", "."], ["Fragezeichen  ?", "?"], ["Ausrufezeichen  !", "!"]].forEach(function (a) {
+      const b = knopf(a[1], "sp-kachel sp-gross", function () { wahl(a[1]); }); b.setAttribute("aria-label", a[0].split("  ")[0]); zeichen.appendChild(b);
+    });
+    starteSatz();
+  } };
+
+  /* ---------- S8 Satzpuzzle ---------- */
+  const SATZPUZZLE = {"leicht": [{"t": ["^der Hund", "bellt", "laut"], "alt": [[2, 1, 0]], "s": "."}, {"t": ["^die Katze", "schläft", "^auf dem Sofa"], "alt": [[2, 1, 0]], "s": "."}, {"t": ["Mia", "trinkt", "einen Saft"], "alt": [], "s": "."}, {"t": ["^heute", "regnet", "es"], "alt": [[2, 1, 0]], "s": "."}, {"t": ["^wir", "gehen", "^in den Park"], "alt": [[2, 1, 0]], "s": "."}, {"t": ["Opa", "liest", "die Zeitung"], "alt": [], "s": "."}, {"t": ["^im Garten", "blühen", "^die Rosen"], "alt": [[2, 1, 0]], "s": "."}, {"t": ["^das Baby", "lacht", "laut"], "alt": [], "s": "."}, {"t": ["^am Montag", "haben", "^wir", "Sport"], "alt": [[2, 1, 0, 3]], "s": "."}, {"t": ["Tom", "spielt", "^mit dem Ball", "^im Hof"], "alt": [[0, 1, 3, 2], [3, 1, 0, 2]], "s": "."}], "mittel": [{"t": ["^am Morgen", "fährt", "Lena", "^mit dem Bus", "zur Schule"], "alt": [[2, 1, 0, 3, 4]], "s": "."}, {"t": ["Opa", "backt", "^am Sonntag", "einen Kuchen", "für alle"], "alt": [[2, 1, 0, 3, 4]], "s": "."}, {"t": ["^nach dem Essen", "spielen", "^die Kinder", "im Garten"], "alt": [[2, 1, 0, 3], [2, 1, 3, 0]], "s": "."}, {"t": ["^im Winter", "trägt", "Jonas", "eine warme Mütze"], "alt": [[2, 1, 0, 3]], "s": "."}, {"t": ["^die Lehrerin", "erklärt", "den Kindern", "die Aufgabe"], "alt": [], "s": "."}, {"t": ["^gestern", "haben", "^wir", "einen Ausflug", "gemacht"], "alt": [[2, 1, 0, 3, 4]], "s": "."}, {"t": ["^in der Pause", "essen", "^wir", "unser Brot"], "alt": [[2, 1, 0, 3]], "s": "."}, {"t": ["^meine Schwester", "malt", "ein buntes Bild", "für Mama"], "alt": [], "s": "."}, {"t": ["^am Abend", "lesen", "^wir", "eine Geschichte"], "alt": [[2, 1, 0, 3]], "s": "."}, {"t": ["^der Bus", "fährt", "^jeden Morgen", "^um sieben Uhr"], "alt": [[2, 1, 0, 3], [3, 1, 0, 2]], "s": "."}], "schwer": [{"t": ["^am Samstag", "sind", "^wir", "mit unseren Freunden", "in den Zoo", "gefahren"], "alt": [[2, 1, 0, 3, 4, 5]], "s": "."}, {"t": ["^nach der Schule", "hat", "Elias", "seiner Oma", "einen Brief", "geschrieben"], "alt": [[2, 1, 0, 3, 4, 5], [2, 1, 3, 0, 4, 5]], "s": "."}, {"t": ["^im Sommer", "fahren", "^wir", "jedes Jahr", "mit dem Zug", "ans Meer"], "alt": [[2, 1, 0, 3, 4, 5]], "s": "."}, {"t": ["^am Nachmittag", "haben", "^wir", "im Garten", "Fußball", "gespielt"], "alt": [[2, 1, 0, 3, 4, 5]], "s": "."}, {"t": ["^die Kinder", "haben", "^am Nachmittag", "im Park", "viele bunte Blätter", "gesammelt"], "alt": [[2, 1, 0, 3, 4, 5]], "s": "."}, {"t": ["^unsere Lehrerin", "liest", "uns", "^jeden Freitag", "eine spannende Geschichte", "vor"], "alt": [[3, 1, 0, 2, 4, 5]], "s": "."}, {"t": ["^mein Bruder", "hat", "^gestern", "im Garten", "einen großen Baum", "gepflanzt"], "alt": [[2, 1, 0, 3, 4, 5]], "s": "."}, {"t": ["^am Wochenende", "sind", "^wir", "mit dem Fahrrad", "durch den Wald", "zum See", "gefahren"], "alt": [[2, 1, 0, 3, 4, 5, 6]], "s": "."}, {"t": ["^die Schülerinnen", "haben", "^für das Schulfest", "bunte Girlanden", "aus Papier", "gebastelt"], "alt": [[2, 1, 0, 3, 4, 5]], "s": "."}, {"t": ["^mein Opa", "erzählt", "uns", "^abends", "oft", "lustige Geschichten"], "alt": [[3, 1, 0, 2, 4, 5]], "s": "."}]};
+  SPIEL_MODULE["satzpuzzle"] = { start: function (r) {
+    const saetze = mische(SATZPUZZLE[r.stufe]);
+    let nr = 0, richtig = 0;
+    function teil(p, i, pos) {
+      const t = p.t[i].replace(/^\^/, ""), erst = p.t[i].charAt(0) === "^";
+      return pos === 0 ? t.charAt(0).toUpperCase() + t.slice(1) : t;
+    }
+    function satzText(p, ord) { return ord.map(function (i, pos) { return teil(p, i, pos); }).join(" ") + p.s; }
+    function runde() {
+      const p = saetze[nr], n = p.t.length; let gewaehlt = [], versuche = 0, fertig = false;
+      const ok = [p.t.map(function (_, i) { return i; })].concat(p.alt).map(function (o) { return o.join(","); });
+      let mix = mische(p.t.map(function (_, i) { return i; })), z = 0;
+      while (ok.indexOf(mix.join(",")) >= 0 && z++ < 20) mix = mische(mix);
+      r.aufgabe("Satz " + (nr + 1) + " von " + saetze.length + ". Tippe die Satzteile in der richtigen Reihenfolge an.");
+      r.flaeche.innerHTML = ""; r.leereAktionen();
+      const bauen = el("div", "sp-bau"); bauen.setAttribute("aria-live", "polite"); const pool = el("div", "sp-reihe");
+      r.flaeche.appendChild(bauen); r.flaeche.appendChild(pool);
+      function zeichne() {
+        bauen.innerHTML = "";
+        if (!gewaehlt.length) bauen.appendChild(el("span", "sp-leer", "Dein Satz erscheint hier."));
+        gewaehlt.forEach(function (i, pos) {
+          const b = knopf(teil(p, i, pos), "sp-chip sp-ok", function () { if (fertig) return; gewaehlt.splice(pos, 1); r.hinweis(null); zeichne(); });
+          b.setAttribute("aria-label", teil(p, i, pos) + ", zum Entfernen antippen"); bauen.appendChild(b);
+        });
+        if (gewaehlt.length) bauen.appendChild(el("span", "sp-schluss", p.s));
+        pool.innerHTML = "";
+        mix.forEach(function (i) {
+          if (gewaehlt.indexOf(i) >= 0) return;
+          pool.appendChild(knopf(p.t[i].replace(/^\^/, ""), "sp-chip", function () {
+            if (fertig) return; gewaehlt.push(i); r.hinweis(null);
+            if (gewaehlt.length === n) pruefe(); else zeichne();
+          }));
+        });
+      }
+      function pruefe() {
+        if (ok.indexOf(gewaehlt.join(",")) >= 0) {
+          fertig = true; if (!versuche) richtig++; zeichne();
+          r.hinweis("richtig", "Richtig! „" + satzText(p, gewaehlt) + "“");
+          r.knopf(nr + 1 < saetze.length ? "Nächster Satz" : "Fertig", function () { nr++; if (nr < saetze.length) runde(); else r.ende(richtig / saetze.length * 100, "Du hast " + richtig + " von " + saetze.length + " Sätzen gleich beim ersten Mal richtig gebaut."); });
+        } else {
+          versuche++; zeichne();
+          r.hinweis("fehlt", "Das klingt noch nicht richtig. Tippe auf einen Teil, um ihn wegzunehmen, und versuche es noch einmal.");
+        }
+      }
+      zeichne();
+      r.knopf("Alles zurücknehmen", function () { if (fertig) return; gewaehlt = []; r.hinweis(null); zeichne(); }, true);
+    }
+    runde();
+  } };
+
+  /* ---------- S9 Wer bin ich? ---------- */
+  const WERBINICH = {"leicht": [{"h": ["Ich habe vier Beine.", "Ich habe ein Fell.", "Ich belle gern.", "Viele Kinder haben mich als Haustier."], "o": ["Hund", "Pferd", "Stuhl", "Fisch"], "r": 0}, {"h": ["Ich bin klein.", "Ich habe Flügel und fliege.", "Ich sammle Nektar.", "Ich mache Honig."], "o": ["Biene", "Hund", "Brot", "Schuh"], "r": 0}, {"h": ["Ich bin ein Gegenstand.", "Ich kann auf- und zugeklappt werden.", "Ich schütze dich vor Wasser von oben.", "Du brauchst mich, wenn es regnet."], "o": ["Regenschirm", "Mütze", "Teller", "Ball"], "r": 0}, {"h": ["Ich habe Zeiger.", "Ich hänge oft an der Wand.", "Ich zeige dir, wie spät es ist.", "Ich mache tick-tack."], "o": ["Uhr", "Lampe", "Spiegel", "Buch"], "r": 0}, {"h": ["Ich trage einen Helm.", "Ich fahre ein rotes Auto.", "Ich helfe bei Gefahr.", "Ich lösche Brände."], "o": ["Feuerwehrfrau", "Bäckerin", "Lehrerin", "Gärtnerin"], "r": 0}, {"h": ["Ich wachse an einem Baum.", "Ich bin rund.", "Ich kann rot oder grün sein.", "Du kannst mich essen."], "o": ["Apfel", "Kartoffel", "Ball", "Nuss"], "r": 0}, {"h": ["Ich lebe am Teich.", "Ich bin grün.", "Ich kann gut springen.", "Ich quake laut."], "o": ["Frosch", "Hase", "Fisch", "Vogel"], "r": 0}, {"h": ["Ich stehe sehr früh auf.", "Ich arbeite mit Mehl.", "Ich habe einen heißen Ofen.", "Bei mir gibt es frische Brötchen."], "o": ["Bäcker", "Pilot", "Arzt", "Maler"], "r": 0}], "mittel": [{"h": ["Ich bin ein Tier.", "Ich lebe in Afrika oder Asien.", "Ich bin sehr groß und schwer.", "Ich habe einen langen Rüssel."], "o": ["Elefant", "Giraffe", "Löwe", "Hase"], "r": 0}, {"h": ["Ich bin ein Gegenstand.", "Ich habe eine Nadel.", "Meine Nadel zeigt immer nach Norden.", "Wanderer nutzen mich, um den Weg zu finden."], "o": ["Kompass", "Uhr", "Lupe", "Waage"], "r": 0}, {"h": ["Ich beginne als Ei.", "Dann werde ich eine Raupe.", "Danach verpuppe ich mich.", "Zum Schluss habe ich bunte Flügel."], "o": ["Schmetterling", "Hamster", "Schnecke", "Spinne"], "r": 0}, {"h": ["Ich arbeite in einer Praxis.", "Ich trage oft einen weißen Kittel und eine Maske.", "Du musst deinen Mund weit öffnen.", "Ich kümmere mich um deine Zähne."], "o": ["Zahnarzt", "Busfahrer", "Förster", "Koch"], "r": 0}, {"h": ["Ich bin ein Gegenstand.", "Ich bestehe aus Glas.", "Ich mache kleine Dinge größer.", "Detektive brauchen mich."], "o": ["Lupe", "Besen", "Kamm", "Radio"], "r": 0}, {"h": ["Ich leuchte nachts.", "Ich verändere meine Form.", "Manchmal bin ich ein schmaler Bogen.", "Ich kreise um die Erde."], "o": ["Mond", "Sonne", "Stern", "Wolke"], "r": 0}, {"h": ["Ich trage eine Uniform.", "Ich arbeite hoch oben.", "Ich sitze im Cockpit.", "Ich steuere ein Flugzeug."], "o": ["Pilot", "Taucher", "Busfahrer", "Lokführer"], "r": 0}, {"h": ["Ich bin ein Tier.", "Ich habe Stacheln.", "Im Winter schlafe ich.", "Ich rolle mich bei Gefahr zu einer Kugel."], "o": ["Igel", "Kaninchen", "Maus", "Eichhörnchen"], "r": 0}], "schwer": [{"h": ["Ich bin ein Wort.", "Man schreibt mich immer groß.", "Ich nenne Menschen, Tiere und Dinge.", "Zum Beispiel: Tisch, Freude, Mutter."], "o": ["Nomen (zum Beispiel: Hund)", "Verb (zum Beispiel: laufen)", "Adjektiv (zum Beispiel: schön)", "Artikel (zum Beispiel: der)"], "r": 0}, {"h": ["Ich bin ein Wort.", "Ich sage, was jemand tut.", "Man kann mich verändern: ich lache, du lachst.", "Zum Beispiel: lesen, schlafen, rennen."], "o": ["Nomen (zum Beispiel: Hund)", "Verb (zum Beispiel: laufen)", "Adjektiv (zum Beispiel: schön)", "Artikel (zum Beispiel: der)"], "r": 1}, {"h": ["Ich bin ein Wort.", "Ich sage, wie etwas ist.", "Man kann mich steigern: schön, schöner, am schönsten.", "Zum Beispiel: groß, kalt, freundlich."], "o": ["Nomen (zum Beispiel: Hund)", "Verb (zum Beispiel: laufen)", "Adjektiv (zum Beispiel: schön)", "Artikel (zum Beispiel: der)"], "r": 2}, {"h": ["Ich bin ein kleines Wort.", "Ich stehe meistens vor einem Nomen.", "Ich heiße der, die oder das.", "Man nennt mich auch Begleiter."], "o": ["Nomen (zum Beispiel: Hund)", "Verb (zum Beispiel: laufen)", "Adjektiv (zum Beispiel: schön)", "Artikel (zum Beispiel: der)"], "r": 3}, {"h": ["Ich bin ein Satzzeichen.", "Ich sehe aus wie ein kleiner Haken.", "Ich stehe zwischen Aufzählungen.", "Mit mir trennt man Nebensätze ab."], "o": ["Komma", "Punkt", "Fragezeichen", "Doppelpunkt"], "r": 0}, {"h": ["Ich stehe in Geschichten.", "Man erkennt mich an Anführungszeichen.", "Ich zeige, was jemand sagt.", "Davor oder danach steht oft ein Doppelpunkt."], "o": ["wörtliche Rede", "Überschrift", "Inhaltsverzeichnis", "Fußnote"], "r": 0}, {"h": ["Ich bin ein Ort.", "Bei mir ist es leise.", "Man kann mich mit einem Ausweis nutzen.", "Hier leihst du Bücher aus."], "o": ["Bibliothek", "Schwimmbad", "Bahnhof", "Bäckerei"], "r": 0}, {"h": ["Ich bin ein Buch.", "Meine Wörter stehen nach dem Alphabet.", "Ich zeige dir, wie man Wörter schreibt.", "Damit findest du Rechtschreibfehler."], "o": ["Wörterbuch", "Atlas", "Kochbuch", "Märchenbuch"], "r": 0}]};
+  SPIEL_MODULE["wer-bin-ich"] = { start: function (r) {
+    const raetsel = mische(WERBINICH[r.stufe]); let nr = 0, summe = 0;
+    function runde() {
+      const q = raetsel[nr]; let gezeigt = 1, fertig = false;
+      r.aufgabe("Rätsel " + (nr + 1) + " von " + raetsel.length + ". Wer oder was bin ich?");
+      r.flaeche.innerHTML = ""; r.leereAktionen();
+      const hl = el("ol", "sp-hinweise"); const antworten = el("div", "sp-antworten");
+      r.flaeche.appendChild(hl); r.flaeche.appendChild(antworten);
+      function zeichne() {
+        hl.innerHTML = ""; q.h.slice(0, gezeigt).forEach(function (h) { hl.appendChild(el("li", "", h)); });
+      }
+      zeichne();
+      mische(q.o.map(function (_, i) { return i; })).forEach(function (i) {
+        const b = knopf(q.o[i], "btn ghost sp-antwort", function () {
+          if (fertig) return;
+          if (i === q.r) {
+            fertig = true; b.classList.add("sp-ok");
+            const st = gezeigt <= 2 ? 3 : gezeigt === 3 ? 2 : 1; summe += st;
+            r.hinweis("richtig", "Richtig! Das war „" + q.o[q.r] + "“. " + sterne(st));
+            antworten.querySelectorAll("button").forEach(function (x) { x.disabled = true; });
+            r.leereAktionen();
+            r.knopf(nr + 1 < raetsel.length ? "Nächstes Rätsel" : "Fertig", function () { nr++; if (nr < raetsel.length) runde(); else r.ende(summe / (raetsel.length * 3) * 100, "Du hast " + summe + " von " + raetsel.length * 3 + " Sternen gesammelt."); });
+          } else { b.classList.add("sp-fehlt"); r.hinweis("fehlt", "Das passt noch nicht zu allen Hinweisen. Lies sie noch einmal oder nimm einen weiteren Hinweis."); }
+        });
+        antworten.appendChild(b);
+      });
+      r.knopf("Nächster Hinweis", function () { if (fertig) return; if (gezeigt < q.h.length) { gezeigt++; zeichne(); r.hinweis(null); } else r.hinweis("bleibt", "Das waren alle Hinweise."); }, true);
+    }
+    runde();
+  } };
+
+  /* ---------- S12 Quizleiter mit Jokern ---------- */
+  const QUIZ = {"leicht": [{"d": 1, "q": "Welches Wort ist richtig geschrieben?", "o": ["Hunt", "Hund", "Hudt", "Hunnd"], "r": 1, "h": "Denke an die Mehrzahl: die Hunde."}, {"d": 1, "q": "Welches Wort ist ein Nomen?", "o": ["laufen", "schnell", "Tisch", "und"], "r": 2, "h": "Nomen kannst du sehen oder anfassen, und man schreibt sie groß."}, {"d": 1, "q": "Welches Satzzeichen fehlt? „Wo wohnst du“", "o": [".", "?", "!", ","], "r": 1, "h": "Es ist eine Frage."}, {"d": 1, "q": "Welches Wort ist richtig geschrieben?", "o": ["Fogel", "Vogel", "Vokel", "Fokel"], "r": 1, "h": "Das Wort beginnt mit V."}, {"d": 1, "q": "Wie heißt die Mehrzahl von „Kind“?", "o": ["Kinds", "Kinder", "Kindern", "Kinde"], "r": 1, "h": "Es sind mehrere: zwei ..."}, {"d": 1, "q": "Welches Wort schreibt man groß?", "o": ["laufen", "Blume", "schön", "gehen"], "r": 1, "h": "Eine Blume kannst du anfassen. Es ist ein Nomen."}, {"d": 1, "q": "Welcher Satz ist richtig?", "o": ["Der hund bellt.", "Der Hund bellt.", "der Hund bellt.", "Der Hund Bellt."], "r": 1, "h": "Am Satzanfang und bei Nomen schreibt man groß."}, {"d": 1, "q": "Welches Wort ist richtig geschrieben?", "o": ["Wiese", "Wise", "Wihse", "Wiehse"], "r": 0, "h": "Hörst du ein langes i? Dann schreibt man oft „ie“."}, {"d": 2, "q": "Welches Wort ist richtig geschrieben?", "o": ["Zuker", "Zucker", "Zukker", "Zuckker"], "r": 1, "h": "Nach kurzem Selbstlaut steht oft „ck“."}, {"d": 2, "q": "Welches Wort ist ein Verb?", "o": ["Haus", "spielen", "bunt", "mit"], "r": 1, "h": "Ein Verb sagt, was jemand tut."}, {"d": 2, "q": "Welches Wort ist ein Adjektiv?", "o": ["laufen", "Sommer", "warm", "am"], "r": 2, "h": "Ein Adjektiv sagt, wie etwas ist."}, {"d": 2, "q": "Welches Wort ist richtig geschrieben?", "o": ["Strase", "Straße", "Strahse", "Strasze"], "r": 1, "h": "Das lange a ist hier ohne h, danach folgt ein ß."}, {"d": 2, "q": "Welcher Satz ist richtig?", "o": ["Wir gehen ins kino.", "Wir gehen ins Kino.", "wir gehen ins Kino.", "Wir Gehen ins Kino."], "r": 1, "h": "Nomen und der Satzanfang werden großgeschrieben."}, {"d": 2, "q": "Wie heißt die Mehrzahl von „Baum“?", "o": ["Baume", "Bäume", "Baumen", "Beume"], "r": 1, "h": "Aus a, o oder u wird oft ä, ö oder ü. Hier mit zwei Punkten."}, {"d": 2, "q": "Welches Wort ist richtig geschrieben?", "o": ["Mutter", "Muter", "Mutetr", "Mutthr"], "r": 0, "h": "Nach dem kurzen u folgt ein doppeltes t."}, {"d": 3, "q": "Welcher Satz ist richtig?", "o": ["Er sagte, dass er müde ist.", "Er sagte, das er müde ist.", "Er sagte dass, er müde ist.", "Er sagte, daß er müde ist."], "r": 0, "h": "Hier leitet es einen Nebensatz ein: mit doppeltem s."}, {"d": 3, "q": "Welches Wort ist richtig geschrieben?", "o": ["Fahrrad", "Farrad", "Fahrad", "Farad"], "r": 0, "h": "Denke an das Verb fahren und an das Wort Rad."}, {"d": 3, "q": "Welches Wort ist richtig geschrieben?", "o": ["Geburtstag", "Geburtsdag", "Gebuhrtstag", "Geburtstak"], "r": 0, "h": "Das Wort besteht aus Geburt und Tag."}, {"d": 3, "q": "Wie heißt die Vergangenheit von „ich lache“?", "o": ["ich lachte", "ich lacht", "ich lachtet", "ich geachtet"], "r": 0, "h": "Gestern ..."}, {"d": 3, "q": "Wo steht das Komma richtig?", "o": ["Ich kaufe Äpfel Birnen und Brot.", "Ich kaufe Äpfel, Birnen und Brot.", "Ich kaufe, Äpfel Birnen und Brot.", "Ich, kaufe Äpfel Birnen und Brot."], "r": 1, "h": "Bei einer Aufzählung trennt das Komma die Wörter, vor „und“ steht keins."}], "mittel": [{"d": 1, "q": "Welches Wort ist richtig geschrieben?", "o": ["Zahl", "Zal", "Zaahl", "Zahll"], "r": 0, "h": "Denke an die Mehrzahl: die Zahlen."}, {"d": 1, "q": "Welches Wort ist richtig geschrieben?", "o": ["Katze", "Kaze", "Katse", "Kattze"], "r": 0, "h": "Nach dem kurzen a folgt „tz“."}, {"d": 1, "q": "Wie heißt die Mehrzahl von „Haus“?", "o": ["Hausen", "Häuser", "Häusern", "Hauses"], "r": 1, "h": "Aus au wird in der Mehrzahl äu."}, {"d": 1, "q": "Welches Wort ist ein Adjektiv?", "o": ["Freude", "gemütlich", "rennen", "deshalb"], "r": 1, "h": "Man kann sagen: ein ... Zimmer."}, {"d": 1, "q": "Welches Satzzeichen fehlt? „Hast du die Hausaufgaben gemacht“", "o": [".", "?", "!", ","], "r": 1, "h": "Es ist eine Frage."}, {"d": 1, "q": "Welcher Satz ist richtig?", "o": ["Das Mädchen liest ein Buch.", "das Mädchen liest ein buch.", "Das Mädchen liest ein buch.", "Das mädchen liest ein Buch."], "r": 0, "h": "Satzanfang und Nomen werden großgeschrieben."}, {"d": 1, "q": "Welches Wort ist richtig geschrieben?", "o": ["Fieber", "Fihber", "Fiebr", "Viber"], "r": 0, "h": "Hörst du ein langes i? Dann schreibt man oft „ie“."}, {"d": 2, "q": "Welche Wortart ist „schnell“?", "o": ["Nomen", "Verb", "Adjektiv", "Artikel"], "r": 2, "h": "Man kann sagen: ein schneller Hase."}, {"d": 2, "q": "Welches Wort ist richtig geschrieben?", "o": ["Wasser", "Waser", "Wasa", "Wassr"], "r": 0, "h": "Nach dem kurzen a folgt ein doppeltes s."}, {"d": 2, "q": "Welcher Satz steht in der Vergangenheit?", "o": ["Ich spiele Fußball.", "Ich spielte Fußball.", "Ich werde Fußball spielen.", "Spiel du Fußball."], "r": 1, "h": "Gestern ..."}, {"d": 2, "q": "Welcher Satz ist richtig?", "o": ["Wir fahren Rad.", "Wir fahren rad.", "Wir Fahren Rad.", "wir fahren Rad."], "r": 0, "h": "Rad ist ein Nomen und wird großgeschrieben."}, {"d": 2, "q": "Welches Wort ist richtig geschrieben?", "o": ["Füße", "Fühße", "Fuesse", "Fusse"], "r": 0, "h": "Mehrzahl von Fuß: ü mit zwei Punkten und ein ß."}, {"d": 2, "q": "Wie heißt die erste Steigerung von „groß“?", "o": ["größer", "grösser", "gröser", "grosser"], "r": 0, "h": "groß, ... , am größten."}, {"d": 2, "q": "Wo steht das Komma richtig?", "o": ["Ich glaube, dass er kommt.", "Ich glaube dass, er kommt.", "Ich, glaube dass er kommt.", "Ich glaube dass er, kommt."], "r": 0, "h": "Vor „dass“ steht ein Komma."}, {"d": 3, "q": "Welches Wort ist richtig geschrieben?", "o": ["Mittagessen", "Mitagessen", "Mittagesen", "Mittagessenn"], "r": 0, "h": "Mittag hat tt, Essen hat ss."}, {"d": 3, "q": "Welcher Satz ist richtig?", "o": ["Sie fragte: „Kommst du mit?“", "Sie fragte „Kommst du mit?“:", "Sie fragte: „Kommst du mit“?", "Sie fragte, „Kommst du mit?“:"], "r": 0, "h": "Nach dem Begleitsatz steht ein Doppelpunkt, das Fragezeichen steht in den Anführungszeichen."}, {"d": 3, "q": "Welche Form ist richtig? „Gestern ... ich einen Apfel.“", "o": ["aß", "esse", "werde essen", "essend"], "r": 0, "h": "Es ist Vergangenheit."}, {"d": 3, "q": "Welches Wort ist ein Nomen?", "o": ["Schönheit", "schön", "schöner", "schönste"], "r": 0, "h": "Nomen schreibt man groß, und sie enden oft auf -heit oder -keit."}, {"d": 3, "q": "Welches Wort ist richtig geschrieben?", "o": ["Wahrheit", "Warheit", "Wahrhait", "Wahrheidt"], "r": 0, "h": "Denke an das Wort wahr."}, {"d": 3, "q": "Welches Wort passt? „Ich helfe ... Kind.“", "o": ["dem", "den", "das", "der"], "r": 0, "h": "Frage: Wem helfe ich?"}], "schwer": [{"d": 1, "q": "Welches Wort ist richtig geschrieben?", "o": ["Interesse", "Interese", "Interrese", "Intreesse"], "r": 0, "h": "Das Wort endet auf „-esse“."}, {"d": 1, "q": "Welches Wort ist richtig geschrieben?", "o": ["Schifffahrt", "Schiffahrt", "Schiffart", "Schifffart"], "r": 0, "h": "Schiff + Fahrt: Die drei f bleiben stehen."}, {"d": 1, "q": "Welcher Satz ist richtig?", "o": ["Er hofft, dass sie kommt.", "Er hofft, das sie kommt.", "Er hofft das, sie kommt.", "Er hofft dass sie, kommt."], "r": 0, "h": "Das Komma steht vor „dass“."}, {"d": 1, "q": "Welches Wort ist ein Verb?", "o": ["Hoffnung", "hoffen", "hoffentlich", "hoffnungsvoll"], "r": 1, "h": "Das Verb endet auf -en."}, {"d": 1, "q": "Welches Wort ist richtig geschrieben?", "o": ["Rhythmus", "Rytmus", "Rhytmus", "Ritmus"], "r": 0, "h": "Ein Wort aus dem Griechischen mit „rh“ am Anfang."}, {"d": 1, "q": "Welches Wort ist richtig geschrieben?", "o": ["Maschine", "Maschiene", "Maschihne", "Maschinne"], "r": 0, "h": "Hier schreibt man nur ein „i“."}, {"d": 2, "q": "Welcher Satz ist richtig?", "o": ["Das Wetter ist heute schön.", "Das wetter ist heute Schön.", "Das Wetter ist Heute schön.", "das Wetter ist heute schön."], "r": 0, "h": "Nur Satzanfang und Nomen schreibt man groß."}, {"d": 2, "q": "Welche Zeitform ist „Er hatte gelesen“?", "o": ["Präteritum", "Perfekt", "Plusquamperfekt", "Futur"], "r": 2, "h": "Es ist die Vorvergangenheit."}, {"d": 2, "q": "Welches Satzglied ist „den Ball“ in „Mia wirft den Ball“?", "o": ["Subjekt", "Prädikat", "Objekt", "Ortsangabe"], "r": 2, "h": "Frage: Wen oder was wirft Mia?"}, {"d": 2, "q": "Welcher Fall ist „dem Hund“ in „Ich gebe dem Hund einen Knochen“?", "o": ["Nominativ", "Genitiv", "Dativ", "Akkusativ"], "r": 2, "h": "Frage: Wem gebe ich etwas?"}, {"d": 2, "q": "Welches Wort ist richtig geschrieben?", "o": ["vielleicht", "filleicht", "vieleicht", "fielleicht"], "r": 0, "h": "Das Wort beginnt mit „viel“."}, {"d": 2, "q": "Wie heißt die Mehrzahl von „Mädchen“?", "o": ["Mädchen", "Mädchens", "Mädchenn", "Mädchener"], "r": 0, "h": "Die Mehrzahl sieht wie die Einzahl aus."}, {"d": 2, "q": "Welcher Satz ist richtig?", "o": ["Wir treffen uns am Montag.", "Wir treffen uns am montag.", "Wir treffen uns Am Montag.", "wir treffen uns am Montag."], "r": 0, "h": "Wochentage sind Nomen und werden großgeschrieben."}, {"d": 3, "q": "Welcher Satz ist richtig?", "o": ["Er hat mir geholfen, weil ich Hilfe brauchte.", "Er hat mir geholfen weil, ich Hilfe brauchte.", "Er hat, mir geholfen weil ich Hilfe brauchte.", "Er hat mir, geholfen weil ich Hilfe brauchte."], "r": 0, "h": "Vor „weil“ steht ein Komma."}, {"d": 3, "q": "Wie schreibt man richtig? „Beim ... bin ich schnell.“", "o": ["Laufen", "laufen", "LAUFEN", "Laufenn"], "r": 0, "h": "Nach „beim“ wird das Verb zum Nomen und großgeschrieben."}, {"d": 3, "q": "Welches Wort ist richtig geschrieben?", "o": ["Entschuldigung", "Endschuldigung", "Entschuldigunk", "Entschuldiegung"], "r": 0, "h": "Das Wort kommt von Schuld und beginnt mit „Ent-“."}, {"d": 3, "q": "Welche Form ist richtig? „Wegen des ... bleiben wir zu Hause.“", "o": ["Regens", "Regen", "Regenn", "Regens’"], "r": 0, "h": "Nach „wegen“ steht oft der Genitiv: des ...-s."}, {"d": 3, "q": "Welche Zeitform ist „Morgen werde ich lernen“?", "o": ["Präteritum", "Futur", "Perfekt", "Präsens"], "r": 1, "h": "Es geschieht erst in der Zukunft."}, {"d": 3, "q": "Welcher Satz ist richtig?", "o": ["Sie sagt: „Ich komme gleich.“", "Sie sagt „Ich komme gleich“.:", "Sie sagt, „Ich komme gleich.“:", "Sie sagt: „Ich komme gleich“."], "r": 0, "h": "Nach dem Begleitsatz steht ein Doppelpunkt, der Punkt steht in den Anführungszeichen."}, {"d": 3, "q": "Welches Wort ist richtig geschrieben?", "o": ["Bibliothek", "Bibliotek", "Biblyothek", "Biblliothek"], "r": 0, "h": "Das Wort kommt aus dem Griechischen und endet auf „-thek“."}]};
+  SPIEL_MODULE["quizleiter"] = { start: function (r) {
+    const alle = QUIZ[r.stufe];
+    const fragen = [1, 2, 3].reduce(function (liste, d, i) {
+      const n = [4, 3, 3][i]; return liste.concat(ziehe(alle.filter(function (q) { return q.d === d; }), n));
+    }, []);
+    let nr = 0, richtig = 0, halb = false, tipp = false;
+    function runde() {
+      const q = fragen[nr]; let fertig = false, fehler = false, gestrichen = {};
+      r.aufgabe("Frage " + (nr + 1) + " von " + fragen.length + (q.d === 1 ? " (leicht)" : q.d === 2 ? " (mittel)" : " (schwer)"));
+      r.flaeche.innerHTML = ""; r.leereAktionen();
+      r.flaeche.appendChild(el("p", "sp-frage", q.q));
+      const antworten = el("div", "sp-antworten"); r.flaeche.appendChild(antworten);
+      const reihenfolge = mische(q.o.map(function (_, i) { return i; }));
+      reihenfolge.forEach(function (i) {
+        const b = knopf(q.o[i], "btn ghost sp-antwort", function () {
+          if (fertig || b.disabled) return;
+          if (i === q.r) {
+            fertig = true; b.classList.add("sp-ok"); if (!fehler) richtig++;
+            r.hinweis("richtig", "Richtig!");
+          } else {
+            fehler = true; fertig = true; b.classList.add("sp-fehlt");
+            antworten.children[reihenfolge.indexOf(q.r)].classList.add("sp-ok");
+            r.hinweis("bleibt", "Nicht ganz. Richtig ist: „" + q.o[q.r] + "“. Die Runde geht weiter.");
+          }
+          antworten.querySelectorAll("button").forEach(function (x) { x.disabled = true; });
+          r.leereAktionen(); jokerKnoepfe(true);
+          r.knopf(nr + 1 < fragen.length ? "Nächste Frage" : "Fertig", function () { nr++; if (nr < fragen.length) runde(); else r.ende(richtig / fragen.length * 100, "Du hast " + richtig + " von " + fragen.length + " Fragen richtig beantwortet."); });
+        });
+        antworten.appendChild(b);
+      });
+      function jokerKnoepfe(aus) {
+        const alt = r.flaeche.querySelector(".sp-joker"); if (alt) alt.remove();
+        const z = el("div", "zeile sp-joker");
+        const a = knopf("Joker: Zwei streichen", "btn ghost small", function () {
+          if (halb || aus || fertig) return; halb = true;
+          const falsche = reihenfolge.filter(function (i) { return i !== q.r; }); ziehe(falsche, 2).forEach(function (i) { const b = antworten.children[reihenfolge.indexOf(i)]; b.disabled = true; b.classList.add("sp-gestrichen"); });
+          r.hinweis("bleibt", "Zwei falsche Antworten sind gestrichen."); jokerKnoepfe(false);
+        });
+        const b2 = knopf("Joker: Hinweis", "btn ghost small", function () {
+          if (tipp || aus || fertig) return; tipp = true; r.hinweis("bleibt", "Hinweis: " + q.h); jokerKnoepfe(false);
+        });
+        if (halb) { a.disabled = true; a.classList.add("sp-grau"); } if (tipp) { b2.disabled = true; b2.classList.add("sp-grau"); }
+        if (aus) { a.disabled = true; b2.disabled = true; }
+        z.appendChild(a); z.appendChild(b2); r.flaeche.appendChild(z);
+      }
+      jokerKnoepfe(false);
+    }
+    runde();
+  } };
+
+  /* ---------- S13 Wort des Tages ---------- */
+  function tagesZahl() { const d = new Date(); return Math.floor(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) / 86400000); }
+  /* Tipp und kleine Aufgabe werden aus der Schreibung des Wortes abgeleitet. */
+  function wortRegel(w) {
+    const l = w.toLowerCase(); let m;
+    if (/ie/.test(l)) return { tipp: "Hier hörst du ein langes i. Es wird „ie“ geschrieben.", teil: "ie", optionen: ["ie", "i", "ih"] };
+    if (/ck/.test(l)) return { tipp: "Nach einem kurzen Selbstlaut steht „ck“, nicht „kk“.", teil: "ck", optionen: ["ck", "k", "kk"] };
+    if (/tz/.test(l)) return { tipp: "Nach einem kurzen Selbstlaut steht „tz“, nicht „zz“.", teil: "tz", optionen: ["tz", "z", "zz"] };
+    if (/ß/.test(l)) return { tipp: "Nach einem langen Selbstlaut oder einem Zwielaut steht oft „ß“.", teil: "ß", optionen: ["ß", "ss", "s"] };
+    if ((m = l.match(/([aeiouäöü])h(?=[lmnr])/))) return { tipp: "Hier steht ein Dehnungs-h. Es macht den Selbstlaut lang.", teil: "h", optionen: ["h", "", "hh"], pos: l.indexOf(m[0]) + 1 };
+    if ((m = l.match(/([bdfgklmnprst])\1/))) return { tipp: "Nach einem kurzen Selbstlaut wird der Mitlaut verdoppelt: „" + m[0] + "“.", teil: m[0], optionen: [m[0], m[1], m[1] + m[1] + m[1]] };
+    if (/chs/.test(l)) return { tipp: "Es klingt wie „ks“, wird aber „chs“ geschrieben.", teil: "chs", optionen: ["chs", "ks", "x"] };
+    return { tipp: "Sprich das Wort in Silben und schreibe sie nacheinander.", teil: null };
+  }
+  SPIEL_MODULE["wort-des-tages"] = { start: function (r) {
+    const liste = r.wortliste.lern.concat(r.wortliste.merk);
+    const tag = tagesZahl(), w = liste[(tag * 11) % liste.length].w, regel = wortRegel(w);
+    r.aufgabe("Dein Wort des Tages");
+    r.flaeche.appendChild(el("p", "sp-grosswort", w));
+    r.flaeche.appendChild(el("p", "sp-einl", "Rechtschreibtipp: " + regel.tipp));
+    const kasten = el("div", "karte"); r.flaeche.appendChild(kasten);
+    function fertig(text) {
+      const sd = spieleDaten(), alt = sd["wort-des-tages|" + stufe];
+      r.ende(100, text + (sitzung.art === "einzel" ? " Du hast in dieser Stufe an " + (alt && alt.zuletzt === heute() ? alt.runden : (alt ? alt.runden : 0) + 1) + " Tagen gespielt." : ""), { einmalProTag: true });
+    }
+    const aufgabeArt = (tag % 2 === 0 && regel.teil) ? "luecke" : "salat";
+    if (aufgabeArt === "luecke") {
+      kasten.appendChild(el("p", "aufgabe", "Welche Buchstaben fehlen in der Lücke?"));
+      const idx = regel.pos !== undefined ? regel.pos : w.toLowerCase().indexOf(regel.teil.toLowerCase());
+      const laenge = regel.pos !== undefined ? 1 : regel.teil.length;
+      const wortAnzeige = el("p", "sp-grosswort", w.slice(0, idx) + (laenge === 1 ? "_" : "_ _") + w.slice(idx + laenge));
+      kasten.appendChild(wortAnzeige);
+      const reihe = el("div", "sp-reihe");
+      const echt = w.slice(idx, idx + laenge);
+      let opts = regel.optionen.map(function (o) { return idx === 0 ? o.charAt(0).toUpperCase() + o.slice(1) : o; });
+      if (regel.pos !== undefined) opts = ["h", "ohne h", "hh"];
+      const richtigOpt = regel.pos !== undefined ? "h" : (idx === 0 ? echt.charAt(0).toUpperCase() + echt.slice(1) : echt);
+      mische(opts).forEach(function (o) {
+        const b = knopf(o, "sp-kachel", function () {
+          if (o === richtigOpt) { b.classList.add("sp-ok"); wortAnzeige.textContent = w; reihe.querySelectorAll("button").forEach(function (x) { x.disabled = true; }); r.hinweis("richtig", "Richtig! Das Wort heißt „" + w + "“."); fertig("Das Wort des Tages ist geschafft."); }
+          else { b.classList.add("sp-fehlt"); r.hinweis("fehlt", "Das passt hier noch nicht. Lies den Tipp noch einmal."); }
+        });
+        reihe.appendChild(b);
+      });
+      kasten.appendChild(reihe);
+    } else {
+      kasten.appendChild(el("p", "aufgabe", "Setze das Wort aus den durcheinandergeratenen Buchstaben zusammen."));
+      const chars = Array.from(w); let reihenfolge = mische(chars.map(function (_, i) { return i; })), t = 0;
+      while (reihenfolge.map(function (i) { return chars[i]; }).join("") === w && t++ < 20) reihenfolge = mische(reihenfolge);
+      const gelegt = []; const felder = el("div", "sp-reihe"), kacheln = el("div", "sp-reihe");
+      kasten.appendChild(felder); kasten.appendChild(kacheln);
+      function zeichne() {
+        felder.innerHTML = ""; chars.forEach(function (c, i) { felder.appendChild(el("span", "sp-feld" + (i < gelegt.length ? " voll" : ""), i < gelegt.length ? c : "")); });
+        kacheln.innerHTML = "";
+        reihenfolge.forEach(function (ci) {
+          const b = knopf(chars[ci], "sp-kachel", function () {
+            if (chars[ci] === w.charAt(gelegt.length)) { gelegt.push(ci); r.hinweis(null); zeichne(); if (gelegt.length === chars.length) { r.hinweis("richtig", "Richtig! Das Wort heißt „" + w + "“."); fertig("Das Wort des Tages ist geschafft."); } }
+            else { b.classList.add("sp-fehlt"); r.hinweis("fehlt", "Dieser Buchstabe kommt hier noch nicht."); }
+          });
+          if (gelegt.indexOf(ci) >= 0) b.disabled = true; kacheln.appendChild(b);
+        });
+      }
+      zeichne();
+      r.knopf("Einen Buchstaben zurück", function () { if (gelegt.length && gelegt.length < chars.length) { gelegt.pop(); r.hinweis(null); zeichne(); } }, true);
+    }
+  } };
+
+  /* ---------- S14 Sudoku ---------- */
+  const SUDOKU = {"leicht": [{"id": "su-l-01", "n": 4, "br": 2, "bc": 2, "p": "1003000100343402", "l": "1243432121343412"}, {"id": "su-l-02", "n": 4, "br": 2, "bc": 2, "p": "4003021003401030", "l": "4123321423411432"}, {"id": "su-l-03", "n": 4, "br": 2, "bc": 2, "p": "0010010310300321", "l": "3412214312344321"}, {"id": "su-l-04", "n": 4, "br": 2, "bc": 2, "p": "0001123000400312", "l": "3421123421434312"}, {"id": "su-l-05", "n": 4, "br": 2, "bc": 2, "p": "4020204310000410", "l": "4321214312343412"}, {"id": "su-l-06", "n": 4, "br": 2, "bc": 2, "p": "0010000442310102", "l": "2413132442313142"}], "mittel": [{"id": "su-m-01", "n": 6, "br": 2, "bc": 3, "p": "103200002431020100014000030500050620", "l": "143265562431325146614352236514451623"}, {"id": "su-m-02", "n": 6, "br": 2, "bc": 3, "p": "203000060102001024400000120500005216", "l": "213465564132651324432651126543345216"}, {"id": "su-m-03", "n": 6, "br": 2, "bc": 3, "p": "000306602510200100560402020001100040", "l": "415326632514243165561432324651156243"}, {"id": "su-m-04", "n": 6, "br": 2, "bc": 3, "p": "420000060140006400300051015060034200", "l": "421536563142156423342651215364634215"}, {"id": "su-m-05", "n": 6, "br": 2, "bc": 3, "p": "013000026140600050005600100360062010", "l": "413526526143631254245631154362362415"}, {"id": "su-m-06", "n": 6, "br": 2, "bc": 3, "p": "000035403062000010004250610000305021", "l": "261435453162526314134256612543345621"}], "schwer": [{"id": "su-s-01", "n": 9, "br": 3, "bc": 3, "p": "056008000907063000040270085604000050719852000820630190000020900072900041508010020", "l": "256148739987563214143279685634791852719852463825634197461325978372986541598417326"}, {"id": "su-s-02", "n": 9, "br": 3, "bc": 3, "p": "564102000109008060008060100802300906400001502306005007040753628000804091200000070", "l": "564132789139578264728469153852347916497681532316295847941753628675824391283916475"}, {"id": "su-s-03", "n": 9, "br": 3, "bc": 3, "p": "073862001008901035900400000084027300702000100009045700297508004405700002806200000", "l": "573862491648971235921453867184627359752389146369145728297538614435716982816294573"}, {"id": "su-s-04", "n": 9, "br": 3, "bc": 3, "p": "060705800000630040100240306584102000900000408036004005007026980090300604041907030", "l": "463715829825639147179248356584162793912573468736894215357426981298351674641987532"}, {"id": "su-s-05", "n": 9, "br": 3, "bc": 3, "p": "602000700159700000008000390080003460000000500476528139200006040003010678804097051", "l": "632985714159734826748261395985173462321649587476528139217856943593412678864397251"}, {"id": "su-s-06", "n": 9, "br": 3, "bc": 3, "p": "050160000192348005840000000500079040028005067000020051480031200030004710070086530", "l": "357162489192348675846597123513679842928415367764823951485731296639254718271986534"}]};
+  SPIEL_MODULE["sudoku"] = { start: function (r) {
+    const s = ziehe(SUDOKU[r.stufe], 1)[0], n = s.n;
+    const werte = Array.from(s.p).map(Number), loes = Array.from(s.l).map(Number), fest = werte.map(function (v) { return v > 0; });
+    let aktiv = -1, fertig = false;
+    r.aufgabe("Fülle jede Zeile, jede Spalte und jedes umrandete Feld mit den Zahlen 1 bis " + n + ". Keine Zahl darf doppelt vorkommen. Tippe ein Feld an, dann eine Zahl.");
+    const gitter = el("div", "sp-sudoku"); gitter.style.setProperty("--n", n);
+    const tasten = el("div", "sp-reihe sp-zahlen");
+    r.flaeche.appendChild(gitter); r.flaeche.appendChild(tasten);
+    const zellen = [];
+    for (let i = 0; i < n * n; i++) {
+      const zr = Math.floor(i / n), zc = i % n;
+      const b = knopf("", "sp-sz", function () { if (!fertig && !fest[i]) { aktiv = i; zeichne(); } });
+      if ((zc + 1) % s.bc === 0 && zc < n - 1) b.classList.add("sp-rr");
+      if ((zr + 1) % s.br === 0 && zr < n - 1) b.classList.add("sp-ru");
+      if (fest[i]) b.classList.add("sp-fest");
+      b.setAttribute("aria-label", "Zeile " + (zr + 1) + ", Spalte " + (zc + 1));
+      zellen.push(b); gitter.appendChild(b);
+    }
+    function zeichne() {
+      zellen.forEach(function (b, i) {
+        b.textContent = werte[i] ? String(werte[i]) : "";
+        b.classList.toggle("sp-gewaehlt", i === aktiv);
+        if (!fest[i]) b.classList.toggle("sp-fehlt", !!werte[i] && b.classList.contains("sp-gemeldet") && werte[i] !== loes[i]);
+      });
+    }
+    function pruefeFertig() {
+      if (werte.every(function (v, i) { return v === loes[i]; })) { fertig = true; aktiv = -1; zeichne(); r.hinweis("richtig", "Das Rätsel ist gelöst!"); r.ende(Math.max(40, 100 - 10 * hilfen), "Du hast das Sudoku gelöst."); }
+    }
+    let hilfen = 0;
+    for (let z = 1; z <= n; z++) {
+      tasten.appendChild(knopf(String(z), "sp-kachel", function () {
+        if (fertig || aktiv < 0) { if (aktiv < 0) r.hinweis("bleibt", "Tippe zuerst ein leeres Feld an."); return; }
+        werte[aktiv] = z; const b = zellen[aktiv]; b.classList.remove("sp-gemeldet");
+        if (z !== loes[aktiv]) { b.classList.add("sp-gemeldet"); r.hinweis("fehlt", "Hier passt diese Zahl noch nicht. Du kannst eine andere Zahl eintragen."); }
+        else r.hinweis(null);
+        zeichne(); pruefeFertig();
+      }));
+    }
+    zeichne();
+    r.knopf("Zahl löschen", function () { if (aktiv >= 0 && !fest[aktiv]) { werte[aktiv] = 0; zellen[aktiv].classList.remove("sp-gemeldet"); r.hinweis(null); zeichne(); } }, true);
+    r.knopf("Fehler anzeigen", function () {
+      let k = 0; werte.forEach(function (v, i) { if (!fest[i] && v && v !== loes[i]) { zellen[i].classList.add("sp-gemeldet"); k++; } }); zeichne();
+      r.hinweis(k ? "fehlt" : "richtig", k ? k + (k === 1 ? " Zahl passt" : " Zahlen passen") + " noch nicht (orange)." : "Bis jetzt sind alle Zahlen richtig.");
+    }, true);
+    r.knopf("Hinweis", function () {
+      const leer = werte.map(function (v, i) { return v !== loes[i] && !fest[i] ? i : -1; }).filter(function (i) { return i >= 0; });
+      if (!leer.length) return; const i = ziehe(leer, 1)[0]; werte[i] = loes[i]; zellen[i].classList.remove("sp-gemeldet"); aktiv = i; hilfen++; r.hinweis("bleibt", "Hier steht jetzt die richtige Zahl."); zeichne(); pruefeFertig();
+    }, true);
+  } };
 
   /* Ansichten */
   const ANSICHTEN = ["ansicht-zugang", "ansicht-wer", "ansicht-start", "ansicht-spiel", "ansicht-fortschritt", "ansicht-unterthemen", "ansicht-uebung", "ansicht-einstellungen", "ansicht-kennwort", "ansicht-lehrkraft", "ansicht-nach-code", "ansicht-nach-bereich"];
@@ -2946,6 +3652,25 @@ const EINZELCODES = [
     const tage = Array.isArray(p.tage) ? p.tage.slice().sort() : [];
     return { aufgaben: n, schnitt: n > 0 ? Math.round(summe / n) : null, tage: tage.length, zuletzt: tage.length ? tage[tage.length - 1] : "" };
   }
+  /* Spiele je Code: nur Anzeige, ohne Bewertung. */
+  function spieleBlock(p) {
+    const box = document.createElement("div"); box.className = "nc-spiele";
+    const sd = (p && p.spiele && typeof p.spiele === "object") ? p.spiele : {};
+    const gespielt = SPIELE.filter(function (sp) { return STUFEN.some(function (st) { return sd[sp.id + "|" + st] && sd[sp.id + "|" + st].runden > 0; }); });
+    const kopf = document.createElement("strong"); kopf.textContent = "Spiele: " + (gespielt.length ? gespielt.length + " von " + SPIELE.length + " gespielt" : "noch kein Spiel gespielt");
+    box.appendChild(kopf);
+    if (gespielt.length) {
+      const ul = document.createElement("ul");
+      gespielt.forEach(function (sp) {
+        const teile = []; let zuletzt = "";
+        STUFEN.forEach(function (st) { const r = sd[sp.id + "|" + st]; if (r && r.runden > 0) { teile.push(st + " " + r.beste + " % (" + r.runden + "×)"); if (r.zuletzt && r.zuletzt > zuletzt) zuletzt = r.zuletzt; } });
+        const li = document.createElement("li"); li.textContent = sp.titel + ": " + teile.join(", ") + (zuletzt ? " · zuletzt " + datumSchoen(zuletzt) : "");
+        ul.appendChild(li);
+      });
+      box.appendChild(ul);
+    }
+    return box;
+  }
   function zeigeNachCode() {
     const liste = document.getElementById("nach-code-liste");
     liste.innerHTML = "";
@@ -2969,7 +3694,9 @@ const EINZELCODES = [
         const dd = document.createElement("dd"); dd.textContent = x[1];
         d.appendChild(dt); d.appendChild(dd); dl.appendChild(d);
       });
-      li.appendChild(kopf); li.appendChild(dl); liste.appendChild(li);
+      li.appendChild(kopf); li.appendChild(dl);
+      li.appendChild(spieleBlock(p));
+      liste.appendChild(li);
     }
     EINZELCODES.forEach(function (code, i) { zeile((i + 1) + ". ", code, profilVon(code), false); });
     daten.profile.forEach(function (p) {
